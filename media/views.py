@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import login
+from .forms import VideoForm
 
 def home_view(request):
     return render (request, "home.html")
@@ -45,7 +46,15 @@ def upload_view(request):
     if not request.user.is_authenticated:
         return redirect("home")
     
+    if request.method == "POST":
+        form = VideoForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect("home")
+    else:
+        form = VideoForm()
+
     context = {
-        "form": "123"
+        "form": form
     }
     return render(request, "upload.html", context)

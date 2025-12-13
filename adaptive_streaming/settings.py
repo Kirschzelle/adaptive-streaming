@@ -55,6 +55,11 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
+
 ROOT_URLCONF = 'adaptive_streaming.urls'
 
 TEMPLATES = [
@@ -137,6 +142,9 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+MEDIA_URL = "media/"
+MEDIA_ROOT = BASE_DIR / MEDIA_URL
 
 # WhiteNoise configuration
 STORAGES = {
