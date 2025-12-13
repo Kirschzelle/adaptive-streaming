@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="navbar">
+    <div class="nav-left">
+        <h2><a href="{% url 'home' %}">Web Scrapper</a></h2>
+    </div>
+    <div class="nav-right">
+        <a href="{% url 'login' %}" class="btn">Login</a>
+    </div>
+</div>
+<div class="authentication-container">
+    <h2>Sign Up</h2>
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+            <p>
+                {{ field.label_tag }}
+                {{ field }}
+                {% if field.errors %}
+                    {{ field.errors }}
+                {% endif %}
+            </p>
+        {% endfor %}
+        <button type="submit">Sign Up</button>
+    </form>
+</div>
+{% endblock %}

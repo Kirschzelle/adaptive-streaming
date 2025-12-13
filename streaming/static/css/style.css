@@ -1,0 +1,198 @@
+:root {
+    --primary-bg-color: #121212;
+    --secondary-bg-color: #1a1a1a;
+    --text-color: #fff;
+    --primary-color: #BB86FC;
+    --nav-bg: #0c0c0c;
+    --hover-color: #333333;
+    --search-hover-color: #9a4fff;
+    --input-color: #0d0d0d;
+}
+
+body {
+    background-color: var(--primary-bg-color);
+    color: var(--text-color);
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 32px;
+    background-color: var(--nav-bg);
+}
+
+a {
+    text-decoration: none;
+    color: var(--text-color);
+}
+
+.nav-right {
+    display: flex;
+    align-items: center;
+}
+
+.nav-right a {
+    margin-left: 16px;
+    padding: 8px 16px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.nav-right a.btn-primary {
+    background-color: var(--primary-color);
+    color: var(--primary-bg-color);
+}
+
+.nav-right a:hover {
+    background-color: var(--hover-color);
+    color: var(--text-color);
+}
+
+.welcome-text {
+    margin-right: 12px;
+    font-size: 16px;
+}
+
+.logout-form {
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+}
+
+.logout-btn {
+    background-color: var(--primary-color);
+    color: var(--primary-bg-color);
+    font-size: 16px;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.logout-btn:hover {
+    background-color: var(--hover-color);
+    color: var(--text-color);
+}
+
+.search-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 10vh;
+}
+
+#search-form input[type="text"] {
+    width: 25vw;
+    min-width: 250px;
+    max-width: 600px;
+    padding: 12px 16px;
+    border-radius: 8px 0 0 8px;
+    border: none;
+    outline: none;
+    font-size: 16px;
+}
+
+#search-form button {
+    padding: 12px 20px;
+    border: none;
+    background-color: var(--primary-color);
+    color: var(--primary-bg-color);
+    border-radius: 0 8px 8px 0;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+#search-form button:hover {
+    background-color: var(--search-hover-color);
+}
+
+.content h2 {
+    text-align: center;
+}
+
+.authentication-container {
+    max-width: 400px;
+    margin: 10vh auto 0 auto;
+    padding: 8vh;
+    background-color: var(--secondary-bg-color);
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.3);
+}
+
+.authentication-container h2 {
+    text-align: center;
+    font-weight: 500;
+}
+
+.authentication-container input {
+    width: 100%;
+    padding: 12px 14px;
+    margin: 8px 0 16px;
+    font-size: 15px;
+    border-radius: 6px;
+    border: 1px solid #333;
+    background: var(--input-color);
+    box-sizing: border-box;
+    color: var(--text-color);
+}
+
+.authentication-container input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.authentication-container button {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    border: none;
+    border-radius: 6px;
+    background-color: var(--primary-color);
+    color: var(--primary-bg-color);
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: background-color 0.2s;
+}
+
+.authentication-container textarea {
+    width: 100%;
+    padding: 12px 14px;
+    margin: 8px 0 16px;
+    font-size: 15px;
+    border-radius: 6px;
+    border: 1px solid #333;
+    background: var(--input-color);
+    box-sizing: border-box;
+    color: var(--text-color);
+    resize: vertical;
+    font-family: inherit;
+}
+
+.authentication-container textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.authentication-container input[type="file"] {
+    padding: 10px;
+    background: var(--input-color);
+    border: 1px dashed #333;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.authentication-container button:hover {
+    background-color: var(--search-hover-color);
+}
+
+.errorlist {
+    margin: 0 0 8px;
+    padding: 0;
+    list-style: none;
+    color: #ff4e4e;
+    font-size: 14px;
+}
