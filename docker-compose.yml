@@ -45,7 +45,25 @@ services:
 
   celery:
     build: .
-    command: celery -A adaptive_streaming worker --loglevel=info
+    command: celery -A adaptive_streaming worker --loglevel=info --queues=default --concurrency=4
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  celery_encoding:
+    build: .
+    command: celery -A adaptive_streaming worker --loglevel=info --queues=video_encoding --concurrency=1
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'
+          memory: 4G
     volumes:
       - .:/app
     env_file:
