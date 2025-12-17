@@ -17,9 +17,20 @@
 <div class="detailed_view_container">
     <h2>{{ video.title }}</h2>
     <p>{{ video.description }}</p>
-    <video controls preload="metadata" width="100%">
-        <source src="{{ video.video.url }}" type="video/mp4">
-        Your browser does not support the video tag.
-    </video>
+    {% with variant=video.best_variant %}
+        {% if variant and variant.file %}
+        <p>Quality: {{ variant.resolution }}</p>
+        <video controls preload="metadata" width="100%">
+            <source src="{{ variant.file.url }}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        {% else %}
+        <p>No video variant available, using original uploaded video</p>
+        <video controls preload="metadata" width="100%">
+            <source src="{{ video.video.url }}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        {% endif %}
+    {% endwith %}
 </div>
 {% endblock %}

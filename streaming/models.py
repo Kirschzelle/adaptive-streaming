@@ -11,6 +11,13 @@ def validate_video_file(value):
         raise ValidationError("Only video files are allowed (mp4, mov, avi, mkv, webm).")
 
 class Video(models.Model):
+    RESOLUTION_RANK = {
+        "360p": 1,
+        "480p": 2,
+        "720p": 3,
+        "1080p": 4,
+        "2160p": 5,
+    }
 
     title = models.CharField(max_length=100)
     description = models.TextField(blank=True)
@@ -20,6 +27,15 @@ class Video(models.Model):
     )
     processing = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now)
+
+    @property
+    def best_variant(self):
+        variants = self.variants.exclude(file = "")
+        return max(
+            variants,
+            key = lambda variant: self.RESOLUTION_RANK.get(variant.resolution, 0),
+            default = None
+        )
 
     def __str__(self):
         return self.title
