@@ -95,10 +95,12 @@ document.addEventListener('DOMContentLoaded', function() {
             html += '<div class="results-list">';
 
             statusData.results.forEach(function(result) {
+                html += '<a href="/detailed_view/' + result.id + '/" class="result-link">';
                 html += '<div class="result-item">';
                 html += '<h3>' + escapeHtml(result.title) + '</h3>';
                 html += '<p>' + escapeHtml(result.description) + '</p>';
                 html += '</div>';
+                html += '</a>';
             });
 
             html += '</div></div>';

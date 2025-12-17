@@ -11,6 +11,7 @@ urlpatterns = [
     path("logout/", LogoutView.as_view(next_page="home"), name="logout"),
     path("upload/", views.upload_view, name="upload"),
     path("search/", views.search, name="search"),
+    path("detailed_view/<int:id>/", views.detailed_view, name="detailed_view"),
     path("status/<str:task_id>/", views.task_status, name="task_status"),
 ]
 

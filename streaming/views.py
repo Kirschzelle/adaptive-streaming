@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import login
 from .forms import VideoForm
@@ -96,3 +96,13 @@ def upload_view(request):
         "form": form
     }
     return render(request, "upload.html", context)
+
+def detailed_view(request, id):
+    print(id)
+    video = get_object_or_404(Video, id=id)
+    print(video)
+    context = {
+        "video": video
+    }
+
+    return render(request, "detailed_view.html", context)
