@@ -20,7 +20,7 @@ def search_videos(query):
         "results": list(results.values("id", "title", "description"))
     }
 
-@shared_task(bind=True)
+@shared_task
 def encode_video_resolution(video_id, resolution):
     variant = VideoVariant.objects.create(video_id=video_id, resolution=resolution)
     

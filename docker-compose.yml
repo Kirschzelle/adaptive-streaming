@@ -60,11 +60,6 @@ services:
   celery_encoding:
     build: .
     command: celery -A adaptive_streaming worker --loglevel=info --queues=video_encoding --concurrency=1
-    deploy:
-      resources:
-        limits:
-          cpus: '4.0'
-          memory: 4G
     volumes:
       - .:/app
     env_file:
