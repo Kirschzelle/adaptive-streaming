@@ -46,7 +46,7 @@ services:
 
   celery:
     build: .
-    command: celery -A adaptive_streaming worker --loglevel=debug --queues=default --concurrency=4
+    command: celery -A adaptive_streaming worker --loglevel=info --queues=celery --concurrency=4
     volumes:
       - .:/app
     env_file:
@@ -59,7 +59,7 @@ services:
 
   celery_encoding:
     build: .
-    command: celery -A adaptive_streaming worker --loglevel=debug --queues=video_encoding --concurrency=1
+    command: celery -A adaptive_streaming worker --loglevel=info --queues=video_encoding --concurrency=1
     deploy:
       resources:
         limits:
