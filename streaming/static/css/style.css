@@ -189,6 +189,38 @@ a {
     background-color: var(--search-hover-color);
 }
 
+.detailed_view_container {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 24px;
+    background-color: var(--secondary-bg-color);
+    border: 1px solid #333;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.35);
+}
+
+.detailed_view_container h2 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 1.8em;
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+.detailed_view_container p {
+    margin-bottom: 20px;
+    color: #aaa;
+    line-height: 1.6;
+    font-size: 1em;
+}
+
+.detailed_view_container video {
+    width: 100%;
+    max-height: 70vh;
+    border-radius: 8px;
+    background-color: black;
+}
+
 .errorlist {
     margin: 0 0 8px;
     padding: 0;

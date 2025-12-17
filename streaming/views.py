@@ -98,11 +98,9 @@ def upload_view(request):
     return render(request, "upload.html", context)
 
 def detailed_view(request, id):
-    print(id)
     video = get_object_or_404(Video, id=id)
-    print(video)
+
     context = {
         "video": video
     }
-
     return render(request, "detailed_view.html", context)
