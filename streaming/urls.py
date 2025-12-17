@@ -10,6 +10,8 @@ urlpatterns = [
     path("login/", views.login_view, name="login"),
     path("logout/", LogoutView.as_view(next_page="home"), name="logout"),
     path("upload/", views.upload_view, name="upload"),
+    path("search/", views.search, name="search"),
+    path("status/<str:task_id>/", views.task_status, name="task_status"),
 ]
 
 if settings.DEBUG:

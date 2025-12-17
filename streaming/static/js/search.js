@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function startSearch(query) {
-        fetch('/api/search/?q=' + encodeURIComponent(query))
+        fetch('/search/?q=' + encodeURIComponent(query))
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function pollTaskStatus(taskId, query) {
         const pollInterval = setInterval(function() {
-            fetch('/api/status/' + taskId + '/')
+            fetch('/status/' + taskId + '/')
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok');
