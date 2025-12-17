@@ -203,6 +203,12 @@ a {
     padding: 0 20px;
 }
 
+.result-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
 .results-list {
     margin-top: 20px;
 }
@@ -215,6 +221,7 @@ a {
     margin-bottom: 15px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.3);
     transition: box-shadow 0.3s ease, border-color 0.3s ease;
+    cursor: pointer;
 }
 
 .result-item:hover {
