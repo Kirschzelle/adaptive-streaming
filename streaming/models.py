@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 import os
 
 def validate_video_file(value):
@@ -18,7 +19,7 @@ class Video(models.Model):
         validators=[validate_video_file]
     )
     processing = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return self.title

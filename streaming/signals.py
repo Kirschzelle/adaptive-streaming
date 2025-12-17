@@ -24,5 +24,5 @@ def queue_video_encoding(sender, instance, created, **kwargs):
     _ = sender
     _ = kwargs
     
-    if instance.video and instance.processing_status == 'pending':
+    if instance.video and not instance.processing:
         encode_video.delay(instance.id)
