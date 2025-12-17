@@ -20,5 +20,15 @@
     </div>
 </div>
 
+<div class="search-container">
+    <form id="search-form">
+        <input type="text" name="search" id="search-input" placeholder="Search datasets...">
+        <button type="submit">Search</button>
+    </form>
+</div>
+
 <div id="results-container"></div>
+
+<script src="{% static 'js/search.js' %}"></script>
+
 {% endblock %}

@@ -27,11 +27,11 @@ class Video(models.Model):
         ordering = ['-created_at']
 
 class Resolution(models.TextChoices):
-    UHD_4K = '2160p', '4K (2160p)'
-    FHD = '1080p', 'Full HD (1080p)'
+    UHD_4K = '2160p', 'UHD_4K (2160p)'
+    FHD = '1080p', 'FHD (1080p)'
     HD = '720p', 'HD (720p)'
     SD = '480p', 'SD (480p)'
-    LOW = '360p', 'Low (360p)'
+    LOW = '360p', 'LOW (360p)'
 
 class VideoVariant(models.Model):
     video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name='variants')

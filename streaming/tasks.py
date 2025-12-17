@@ -6,7 +6,7 @@ import os
 import subprocess
 
 @shared_task
-def search_datasets(query):
+def search_videos(query):
     from django.db.models import Q
     results = Video.objects.filter(
         Q(title__icontains=query) | Q(description__icontains=query)
