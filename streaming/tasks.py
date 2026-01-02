@@ -32,95 +32,110 @@ def encode_video(video_id):
             return
         video.processing = True
         video.save(update_fields=['processing'])
-        
+    
     try:
         input_path = video.video.path
         output_dir = f'/tmp/dash_{video_id}'
         os.makedirs(output_dir, exist_ok=True)
         
-        duration_cmd = [
+        probe_cmd = [
             'ffprobe',
             '-v', 'error',
-            '-show_entries', 'format=duration',
+            '-show_entries', 'format=duration:stream=codec_type,width,height',
             '-of', 'json',
             input_path
         ]
-        duration_result = subprocess.run(duration_cmd, capture_output=True, text=True, check=True)
-        duration_data = json.loads(duration_result.stdout)
-        duration = float(duration_data['format']['duration'])
+        probe_result = subprocess.run(probe_cmd, capture_output=True, text=True, check=True)
+        probe_data = json.loads(probe_result.stdout)
+        duration = float(probe_data['format']['duration'])
+        
+        video_stream = next((s for s in probe_data['streams'] if s['codec_type'] == 'video'), None)
+        if not video_stream:
+            raise RuntimeError("No video stream found in input file")
+        
+        source_width = int(video_stream.get('width', 1920))
+        source_height = int(video_stream.get('height', 1080))
+                
+        all_qualities = [
+            {'name': '360p', 'width': 640, 'height': 360, 'bitrate': '400k', 'maxrate': '500k', 'bufsize': '800k'},
+            {'name': '480p', 'width': 854, 'height': 480, 'bitrate': '800k', 'maxrate': '1200k', 'bufsize': '1600k'},
+            {'name': '720p', 'width': 1280, 'height': 720, 'bitrate': '2000k', 'maxrate': '3000k', 'bufsize': '4000k'},
+            {'name': '1080p', 'width': 1920, 'height': 1080, 'bitrate': '4000k', 'maxrate': '6000k', 'bufsize': '8000k'},
+        ]
+        
+        qualities = [q for q in all_qualities if q['height'] <= source_height]
+        
+        if not qualities:
+            qualities = [{
+                'name': 'source',
+                'width': source_width,
+                'height': source_height,
+                'bitrate': '400k',
+                'maxrate': '500k',
+                'bufsize': '800k'
+            }]
+        
+        encoded_files = []
+        for idx, quality in enumerate(qualities):
+            output_file = os.path.join(output_dir, f'video_{idx}_{quality["name"]}.webm')
+                        
+            cmd = [
+                'ffmpeg',
+                '-i', input_path,
+                '-c:v', 'libvpx-vp9',
+                '-b:v', quality['bitrate'],
+                '-minrate', quality['bitrate'],
+                '-maxrate', quality['maxrate'],
+                '-crf', '31',
+                '-vf', f"scale={quality['width']}:{quality['height']}",
+                '-cpu-used', '2',
+                '-row-mt', '1',
+                '-tile-columns', '2',
+                '-g', '120',
+                '-keyint_min', '120',
+                '-sc_threshold', '0',
+                '-c:a', 'libopus',
+                '-b:a', '128k',
+                '-ar', '48000',
+                '-ac', '2',
+                '-f', 'webm',
+                '-y',
+                output_file
+            ]
+            
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            
+            if result.returncode != 0:
+                raise subprocess.CalledProcessError(result.returncode, cmd, result.stdout, result.stderr)
+            
+            encoded_files.append(output_file)        
+        
+        dash_inputs = []
+        for f in encoded_files:
+            dash_inputs.extend(['-i', f])
+        
+        map_args = []
+        for i in range(len(encoded_files)):
+            map_args.extend(['-map', f'{i}:v', '-map', f'{i}:a'])
 
         manifest = 'manifest.mpd'
         
-        command = [
+        dash_cmd = [
             'ffmpeg',
-            '-i', input_path,
-            # 360p
-            '-map', '0:v:0', '-map', '0:a:0',
-            '-c:v:0', 'libx264',
-            '-b:v:0', '400k',
-            '-maxrate:v:0', '450k',
-            '-bufsize:v:0', '800k',
-            '-s:v:0', '640x360',
-            '-profile:v:0', 'main',
-            '-preset:v:0', 'fast',
-            '-g:v:0', '48',
-            '-keyint_min:v:0', '48',
-            '-sc_threshold:v:0', '0',
-            # 480p
-            '-map', '0:v:0', '-map', '0:a:0',
-            '-c:v:1', 'libx264',
-            '-b:v:1', '800k',
-            '-maxrate:v:1', '900k',
-            '-bufsize:v:1', '1600k',
-            '-s:v:1', '854x480',
-            '-profile:v:1', 'main',
-            '-preset:v:1', 'fast',
-            '-g:v:1', '48',
-            '-keyint_min:v:1', '48',
-            '-sc_threshold:v:1', '0',
-            # 720p
-            '-map', '0:v:0', '-map', '0:a:0',
-            '-c:v:2', 'libx264',
-            '-b:v:2', '2000k',
-            '-maxrate:v:2', '2200k',
-            '-bufsize:v:2', '4000k',
-            '-s:v:2', '1280x720',
-            '-profile:v:2', 'main',
-            '-preset:v:2', 'fast',
-            '-g:v:2', '48',
-            '-keyint_min:v:2', '48',
-            '-sc_threshold:v:2', '0',
-            # 1080p
-            '-map', '0:v:0', '-map', '0:a:0',
-            '-c:v:3', 'libx264',
-            '-b:v:3', '4000k',
-            '-maxrate:v:3', '4500k',
-            '-bufsize:v:3', '8000k',
-            '-s:v:3', '1920x1080',
-            '-profile:v:3', 'high',
-            '-preset:v:3', 'fast',
-            '-g:v:3', '48',
-            '-keyint_min:v:3', '48',
-            '-sc_threshold:v:3', '0',
-            # Audio
-            '-c:a', 'aac',
-            '-b:a', '128k',
-            '-ar', '48000',
-            '-ac', '2',
-            # DASH
-            '-f', 'dash',
-            '-seg_duration', '4',
-            '-use_template', '1',
-            '-use_timeline', '1',
-            '-init_seg_name', 'init-stream$RepresentationID$.$ext$',
-            '-media_seg_name', 'chunk-stream$RepresentationID$-$Number%05d$.$ext$',
-            '-adaptation_sets', 'id=0,streams=v id=1,streams=a',
+            *dash_inputs,
+            *map_args,
+            '-c', 'copy',
+            '-f', 'webm_dash_manifest',
+            '-live', '0',
             '-y',
-            os.path.join(output_dir, 'manifest.mpd')
+            os.path.join(output_dir, manifest)
         ]
         
-        subprocess.run(command, capture_output=True, text=True, check=True)
+        result = subprocess.run(dash_cmd, capture_output=True, text=True)
         
+        if result.returncode != 0:
+            raise subprocess.CalledProcessError(result.returncode, dash_cmd, result.stdout, result.stderr)
+
         dash_dir_name = f'dash/{video_id}'
         
         manifest_path = os.path.join(output_dir, manifest)
@@ -142,7 +157,7 @@ def encode_video(video_id):
                         f'{dash_dir_name}/{file_name}',
                         ContentFile(f.read())
                     )
-        
+                
         video.dash_base_path = dash_dir_name
         video.duration = duration
         video.dash_ready = True
@@ -150,9 +165,12 @@ def encode_video(video_id):
         video.save(update_fields=['dash_manifest', 'dash_base_path', 'duration', 'dash_ready', 'processing'])
         
         shutil.rmtree(output_dir)
-        
+                
+    except subprocess.CalledProcessError as e:
+        video.processing = False
+        video.save(update_fields=['processing'])
+        raise
     except Exception as e:
-        _ = e
         video.processing = False
         video.save(update_fields=['processing'])
         raise
