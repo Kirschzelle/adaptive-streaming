@@ -10,7 +10,18 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     libpq-dev \
     ffmpeg \
+    wget \
     && rm -rf /var/lib/apt/lists/*
+
+RUN ARCH=$(uname -m) && \
+    if [ "$ARCH" = "x86_64" ]; then \
+        wget https://github.com/shaka-project/shaka-packager/releases/download/v3.2.0/packager-linux-x64 -O /usr/local/bin/packager; \
+    elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then \
+        wget https://github.com/shaka-project/shaka-packager/releases/download/v3.2.0/packager-linux-arm64 -O /usr/local/bin/packager; \
+    else \
+        echo "Unsupported architecture: $ARCH" && exit 1; \
+    fi && \
+    chmod +x /usr/local/bin/packager
 
 COPY requirements.txt /app/
 RUN pip install --upgrade pip && pip install -r requirements.txt

@@ -76,7 +76,7 @@ def encode_video(video_id):
         
         video_files = []
         
-        for idx, quality in enumerate(qualities):
+        for _, quality in enumerate(qualities):
             video_output = os.path.join(output_dir, f'video_{quality["name"]}.webm')
             
             video_cmd = [
@@ -96,7 +96,6 @@ def encode_video(video_id):
                 '-sc_threshold', '0',
                 '-an',
                 '-f', 'webm',
-                '-dash', '1',
                 '-y',
                 video_output
             ]
@@ -119,7 +118,6 @@ def encode_video(video_id):
             '-ar', '48000',
             '-ac', '2',
             '-f', 'webm',
-            '-dash', '1',
             '-y',
             audio_output
         ]
@@ -130,30 +128,30 @@ def encode_video(video_id):
             raise subprocess.CalledProcessError(result.returncode, audio_cmd, result.stdout, result.stderr)
         
         manifest = 'manifest.mpd'
-        all_files = video_files + [audio_output]
         
-        dash_inputs = []
-        for f in all_files:
-            dash_inputs.extend(['-i', f])
-        
-        map_args = []
-        for i in range(len(all_files)):
-            map_args.extend(['-map', str(i)])
-        
-        dash_cmd = [
-            'ffmpeg',
-            *dash_inputs,
-            *map_args,
-            '-c', 'copy',
-            '-f', 'webm_dash_manifest',
-            '-y',
-            os.path.join(output_dir, manifest)
+        packager_inputs = []
+
+        for idx, video_file in enumerate(video_files):
+            quality_name = qualities[idx]['name']
+            packager_inputs.append(
+                f'in={video_file},stream=video,init_segment={output_dir}/init_{quality_name}.webm,segment_template={output_dir}/seg_{quality_name}_$Number$.webm'
+            )
+
+        packager_inputs.append(
+            f'in={audio_output},stream=audio,init_segment={output_dir}/init_audio.webm,segment_template={output_dir}/seg_audio_$Number$.webm'
+        )
+
+        packager_cmd = [
+            'packager',
+            *packager_inputs,
+            '--mpd_output', os.path.join(output_dir, manifest),
+            '--segment_duration', '4'
         ]
-        
-        result = subprocess.run(dash_cmd, capture_output=True, text=True)
-        
+
+        result = subprocess.run(packager_cmd, capture_output=True, text=True)
+
         if result.returncode != 0:
-            raise subprocess.CalledProcessError(result.returncode, dash_cmd, result.stdout, result.stderr)
+            raise subprocess.CalledProcessError(result.returncode, packager_cmd, result.stdout, result.stderr)
 
         dash_dir_name = f'dash/{video_id}'
         
