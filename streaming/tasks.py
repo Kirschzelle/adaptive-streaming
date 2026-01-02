@@ -57,10 +57,10 @@ def encode_video(video_id):
         source_height = int(video_stream.get('height', 1080))
                 
         all_qualities = [
-            {'name': '360p', 'width': 640, 'height': 360, 'bitrate': '400k', 'maxrate': '500k', 'bufsize': '800k'},
-            {'name': '480p', 'width': 854, 'height': 480, 'bitrate': '800k', 'maxrate': '1200k', 'bufsize': '1600k'},
-            {'name': '720p', 'width': 1280, 'height': 720, 'bitrate': '2000k', 'maxrate': '3000k', 'bufsize': '4000k'},
-            {'name': '1080p', 'width': 1920, 'height': 1080, 'bitrate': '4000k', 'maxrate': '6000k', 'bufsize': '8000k'},
+            {'name': '360p', 'width': 640, 'height': 360, 'bitrate': '400k', 'maxrate': '500k'},
+            {'name': '480p', 'width': 854, 'height': 480, 'bitrate': '800k', 'maxrate': '1200k'},
+            {'name': '720p', 'width': 1280, 'height': 720, 'bitrate': '2000k', 'maxrate': '3000k'},
+            {'name': '1080p', 'width': 1920, 'height': 1080, 'bitrate': '4000k', 'maxrate': '6000k'},
         ]
         
         qualities = [q for q in all_qualities if q['height'] <= source_height]
@@ -71,15 +71,15 @@ def encode_video(video_id):
                 'width': source_width,
                 'height': source_height,
                 'bitrate': '400k',
-                'maxrate': '500k',
-                'bufsize': '800k'
+                'maxrate': '500k'
             }]
         
-        encoded_files = []
+        video_files = []
+        
         for idx, quality in enumerate(qualities):
-            output_file = os.path.join(output_dir, f'video_{idx}_{quality["name"]}.webm')
-                        
-            cmd = [
+            video_output = os.path.join(output_dir, f'video_{quality["name"]}.webm')
+            
+            video_cmd = [
                 'ffmpeg',
                 '-i', input_path,
                 '-c:v', 'libvpx-vp9',
@@ -94,31 +94,51 @@ def encode_video(video_id):
                 '-g', '120',
                 '-keyint_min', '120',
                 '-sc_threshold', '0',
-                '-c:a', 'libopus',
-                '-b:a', '128k',
-                '-ar', '48000',
-                '-ac', '2',
+                '-an',
                 '-f', 'webm',
+                '-dash', '1',
                 '-y',
-                output_file
+                video_output
             ]
             
-            result = subprocess.run(cmd, capture_output=True, text=True)
+            result = subprocess.run(video_cmd, capture_output=True, text=True)
             
             if result.returncode != 0:
-                raise subprocess.CalledProcessError(result.returncode, cmd, result.stdout, result.stderr)
+                raise subprocess.CalledProcessError(result.returncode, video_cmd, result.stdout, result.stderr)
             
-            encoded_files.append(output_file)        
+            video_files.append(video_output)
+        
+        audio_output = os.path.join(output_dir, 'audio.webm')
+        
+        audio_cmd = [
+            'ffmpeg',
+            '-i', input_path,
+            '-vn',
+            '-c:a', 'libopus',
+            '-b:a', '128k',
+            '-ar', '48000',
+            '-ac', '2',
+            '-f', 'webm',
+            '-dash', '1',
+            '-y',
+            audio_output
+        ]
+        
+        result = subprocess.run(audio_cmd, capture_output=True, text=True)
+        
+        if result.returncode != 0:
+            raise subprocess.CalledProcessError(result.returncode, audio_cmd, result.stdout, result.stderr)
+        
+        manifest = 'manifest.mpd'
+        all_files = video_files + [audio_output]
         
         dash_inputs = []
-        for f in encoded_files:
+        for f in all_files:
             dash_inputs.extend(['-i', f])
         
         map_args = []
-        for i in range(len(encoded_files)):
-            map_args.extend(['-map', f'{i}:v', '-map', f'{i}:a'])
-
-        manifest = 'manifest.mpd'
+        for i in range(len(all_files)):
+            map_args.extend(['-map', str(i)])
         
         dash_cmd = [
             'ffmpeg',
@@ -126,7 +146,6 @@ def encode_video(video_id):
             *map_args,
             '-c', 'copy',
             '-f', 'webm_dash_manifest',
-            '-live', '0',
             '-y',
             os.path.join(output_dir, manifest)
         ]
