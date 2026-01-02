@@ -18,4 +18,4 @@ def queue_video_encoding(sender, instance, created, **kwargs):
     _ = created
     
     if instance.video and not instance.processing:
-        encode_video.delay(instance.id, queue='video_encoding')
+        encode_video.apply_async(args=[instance.id], queue="video_encoding")
