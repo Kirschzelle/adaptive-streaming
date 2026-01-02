@@ -35,3 +35,6 @@ docker compose down -v && docker compose up --build
 ## Troubleshooting
 
 **Permission error:** `sudo chown -R $(whoami) ~/.docker`
+
+## Versioning
+For specific assignments see the corresponding branch.
