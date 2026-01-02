@@ -10,59 +10,50 @@ def validate_video_file(value):
     if ext not in allowed_extensions:
         raise ValidationError("Only video files are allowed (mp4, mov, avi, mkv, webm).")
 
-class Video(models.Model):
-    RESOLUTION_RANK = {
-        "360p": 1,
-        "480p": 2,
-        "720p": 3,
-        "1080p": 4,
-        "2160p": 5,
-    }
 
+class Video(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField(blank=True)
+    
     video = models.FileField(
-        upload_to="videos/",
+        upload_to="videos/originals/",
         validators=[validate_video_file]
     )
+    
+    dash_manifest = models.FileField(
+        upload_to='videos/dash/',
+        blank=True,
+        null=True,
+    )
+    
+    dash_base_path = models.CharField(
+        max_length=255,
+        blank=True,
+    )
+    
     processing = models.BooleanField(default=False)
+    dash_ready = models.BooleanField(default=False)
+    
     created_at = models.DateTimeField(default=timezone.now)
-
-    @property
-    def best_variant(self):
-        variants = self.variants.exclude(file = "")
-        return max(
-            variants,
-            key = lambda variant: self.RESOLUTION_RANK.get(variant.resolution, 0),
-            default = None
-        )
-
+    duration = models.FloatField(
+        null=True,
+        blank=True,
+    )
+    
     def __str__(self):
         return self.title
-
+    
     class Meta:
         ordering = ['-created_at']
-
-class Resolution(models.TextChoices):
-    UHD_4K = '2160p', 'UHD_4K (2160p)'
-    FHD = '1080p', 'FHD (1080p)'
-    HD = '720p', 'HD (720p)'
-    SD = '480p', 'SD (480p)'
-    LOW = '360p', 'LOW (360p)'
-
-class VideoVariant(models.Model):
-    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name='variants')
-    resolution = models.CharField(max_length=20, choices=Resolution.choices)
-    file = models.FileField(upload_to='videos/variants/%Y/%m/%d/')
-
-    def __str__(self):
-        return self.video.title + "_" + self.resolution
     
-class CurrentEncode(models.Model):
-    video_variant = models.ForeignKey(
-        VideoVariant, 
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True
-    )
-    started_at = models.DateTimeField(auto_now_add=True)
+    @property
+    def is_streamable(self):
+        """Check if video is ready for adaptive streaming"""
+        return self.dash_ready and bool(self.dash_manifest)
+    
+    @property
+    def manifest_url(self):
+        """Get the URL for the DASH manifest"""
+        if self.dash_manifest:
+            return self.dash_manifest.url
+        return None
