@@ -186,16 +186,16 @@ def encode_video(video_id):
         video.dash_base_path = dash_dir_name
         video.duration = duration
         video.dash_ready = True
-        video.processing = False
+        video.processing = True
         video.save(update_fields=['dash_manifest', 'dash_base_path', 'duration', 'dash_ready', 'processing'])
         
         shutil.rmtree(output_dir)
                 
-    except subprocess.CalledProcessError as e:
+    except subprocess.CalledProcessError as _:
         video.processing = False
         video.save(update_fields=['processing'])
         raise
-    except Exception as e:
+    except Exception as _:
         video.processing = False
         video.save(update_fields=['processing'])
         raise
