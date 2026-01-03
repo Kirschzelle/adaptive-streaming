@@ -163,7 +163,7 @@ def encode_video(video_id):
         if result.returncode != 0:
             raise subprocess.CalledProcessError(result.returncode, packager_cmd, result.stdout, result.stderr)
 
-        dash_dir_name = f'videos/dash/{video_id}'
+        dash_dir_name = f'dash/{video_id}'
 
         manifest_path = os.path.join(output_dir, manifest)
         with open(manifest_path, 'rb') as f:
