@@ -163,8 +163,8 @@ def encode_video(video_id):
         if result.returncode != 0:
             raise subprocess.CalledProcessError(result.returncode, packager_cmd, result.stdout, result.stderr)
 
-        dash_dir_name = f'dash/{video_id}'
-        
+        dash_dir_name = f'videos/dash/{video_id}'
+
         manifest_path = os.path.join(output_dir, manifest)
         with open(manifest_path, 'rb') as f:
             video.dash_manifest.storage.save(
@@ -182,13 +182,14 @@ def encode_video(video_id):
                         f'{dash_dir_name}/{file_name}',
                         ContentFile(f.read())
                     )
-                
+
+        video.dash_manifest.name = f'{dash_dir_name}/{manifest}'
         video.dash_base_path = dash_dir_name
         video.duration = duration
         video.dash_ready = True
         video.processing = True
         video.save(update_fields=['dash_manifest', 'dash_base_path', 'duration', 'dash_ready', 'processing'])
-        
+
         shutil.rmtree(output_dir)
                 
     except subprocess.CalledProcessError as _:
