@@ -153,6 +153,7 @@ def encode_video(video_id):
             *packager_inputs,
             '--mpd_output', os.path.join(output_dir, manifest),
             '--segment_duration', '4'
+            '--generate_static_live_mpd'
         ]
 
         result = subprocess.run(packager_cmd, capture_output=True, text=True)
