@@ -41,20 +41,20 @@ def encode_video(video_id):
         probe_cmd = [
             'ffprobe',
             '-v', 'error',
-            '-show_entries', 'format=duration:stream=codec_type,width,height',
+            '-show_entries', 'format=duration:stream=codec_type,width,height,codec_name',
             '-of', 'json',
             input_path
         ]
         probe_result = subprocess.run(probe_cmd, capture_output=True, text=True, check=True)
         probe_data = json.loads(probe_result.stdout)
+
         duration = float(probe_data['format']['duration'])
-        
+
         video_stream = next((s for s in probe_data['streams'] if s['codec_type'] == 'video'), None)
         if not video_stream:
             raise RuntimeError("No video stream found in input file")
-        
 
-        audio_stream = next((s for s in probe_data['streams'] if s['codec_type'] == 'audio'), None)
+        audio_stream = next((s for s in probe_data['streams'] if s.get('codec_type') == 'audio'), None)
         has_audio = audio_stream is not None
         
         source_width = int(video_stream.get('width', 1920))
@@ -114,24 +114,26 @@ def encode_video(video_id):
         audio_output = os.path.join(output_dir, 'audio.webm')
         
         if has_audio:
-            
-            audio_cmd = [
-                'ffmpeg',
-                '-i', input_path,
-                '-vn',
-                '-c:a', 'libopus',
-                '-b:a', '128k',
-                '-ar', '48000',
-                '-ac', '2',
-                '-f', 'webm',
-                '-y',
-                audio_output
-            ]
-            
-            result = subprocess.run(audio_cmd, capture_output=True, text=True)
-            
-            if result.returncode != 0:
-                raise subprocess.CalledProcessError(result.returncode, audio_cmd, result.stdout, result.stderr)
+            try:
+                audio_cmd = [
+                    'ffmpeg',
+                    '-i', input_path,
+                    '-vn',
+                    '-c:a', 'libopus',
+                    '-b:a', '128k',
+                    '-ar', '48000',
+                    '-ac', '2',
+                    '-f', 'webm',
+                    '-y',
+                    audio_output
+                ]
+                
+                result = subprocess.run(audio_cmd, capture_output=True, text=True)
+                
+                if result.returncode != 0:
+                    raise subprocess.CalledProcessError(result.returncode, audio_cmd, result.stdout, result.stderr)
+            except:
+                has_audio = False
         
         manifest = 'manifest.mpd'
         
