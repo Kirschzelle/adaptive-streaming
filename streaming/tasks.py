@@ -53,6 +53,10 @@ def encode_video(video_id):
         if not video_stream:
             raise RuntimeError("No video stream found in input file")
         
+
+        audio_stream = next((s for s in probe_data['streams'] if s['codec_type'] == 'audio'), None)
+        has_audio = audio_stream is not None
+        
         source_width = int(video_stream.get('width', 1920))
         source_height = int(video_stream.get('height', 1080))
                 
@@ -106,26 +110,28 @@ def encode_video(video_id):
                 raise subprocess.CalledProcessError(result.returncode, video_cmd, result.stdout, result.stderr)
             
             video_files.append(video_output)
-        
+
         audio_output = os.path.join(output_dir, 'audio.webm')
         
-        audio_cmd = [
-            'ffmpeg',
-            '-i', input_path,
-            '-vn',
-            '-c:a', 'libopus',
-            '-b:a', '128k',
-            '-ar', '48000',
-            '-ac', '2',
-            '-f', 'webm',
-            '-y',
-            audio_output
-        ]
-        
-        result = subprocess.run(audio_cmd, capture_output=True, text=True)
-        
-        if result.returncode != 0:
-            raise subprocess.CalledProcessError(result.returncode, audio_cmd, result.stdout, result.stderr)
+        if has_audio:
+            
+            audio_cmd = [
+                'ffmpeg',
+                '-i', input_path,
+                '-vn',
+                '-c:a', 'libopus',
+                '-b:a', '128k',
+                '-ar', '48000',
+                '-ac', '2',
+                '-f', 'webm',
+                '-y',
+                audio_output
+            ]
+            
+            result = subprocess.run(audio_cmd, capture_output=True, text=True)
+            
+            if result.returncode != 0:
+                raise subprocess.CalledProcessError(result.returncode, audio_cmd, result.stdout, result.stderr)
         
         manifest = 'manifest.mpd'
         
@@ -137,9 +143,10 @@ def encode_video(video_id):
                 f'in={video_file},stream=video,init_segment={output_dir}/init_{quality_name}.webm,segment_template={output_dir}/seg_{quality_name}_$Number$.webm'
             )
 
-        packager_inputs.append(
-            f'in={audio_output},stream=audio,init_segment={output_dir}/init_audio.webm,segment_template={output_dir}/seg_audio_$Number$.webm'
-        )
+        if has_audio:
+            packager_inputs.append(
+                f'in={audio_output},stream=audio,init_segment={output_dir}/init_audio.webm,segment_template={output_dir}/seg_audio_$Number$.webm'
+            )
 
         packager_cmd = [
             'packager',
@@ -157,16 +164,14 @@ def encode_video(video_id):
         
         manifest_path = os.path.join(output_dir, manifest)
         with open(manifest_path, 'rb') as f:
-            video.dash_manifest.save(
+            video.dash_manifest.storage.save(
                 f'{dash_dir_name}/{manifest}',
-                File(f),
-                save=False
+                ContentFile(f.read())
             )
-        
+
         for file_name in os.listdir(output_dir):
             if file_name == manifest:
                 continue
-            
             file_path = os.path.join(output_dir, file_name)
             if os.path.isfile(file_path):
                 with open(file_path, 'rb') as f:
