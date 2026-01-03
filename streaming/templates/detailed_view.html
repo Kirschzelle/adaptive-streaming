@@ -17,20 +17,20 @@
 <div class="detailed_view_container">
     <h2>{{ video.title }}</h2>
     <p>{{ video.description }}</p>
-    {% with variant=video.best_variant %}
-        {% if variant and variant.file %}
-        <p>Quality: {{ variant.resolution }}</p>
-        <video controls preload="metadata" width="100%">
-            <source src="{{ variant.file.url }}" type="video/mp4">
-            Your browser does not support the video tag.
-        </video>
-        {% else %}
-        <p>No video variant available, using original uploaded video</p>
-        <video controls preload="metadata" width="100%">
-            <source src="{{ video.video.url }}" type="video/mp4">
-            Your browser does not support the video tag.
-        </video>
-        {% endif %}
-    {% endwith %}
+    {% if video.is_streamable %}
+    <p>Currently using: DASH</p>
+    <div data-shaka-player-container data-shaka-player-cast-receiver-id="07AEE832">
+        <video id="video" data-shaka-player data-mpd="{{ video.manifest_url }}"></video>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/shaka-player.ui.min.js"></script>
+    <script src="{% static 'js/shaka-player.js' %}"></script>
+    {% else %}
+    <p>Currently using: original video</p>
+    <video controls preload="metadata" width="100%">
+        <source src="{{ video.video.url }}" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+    {% endif %}
 </div>
 {% endblock %}
