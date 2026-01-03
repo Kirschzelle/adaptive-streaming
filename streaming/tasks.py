@@ -154,7 +154,7 @@ def encode_video(video_id):
             'packager',
             *packager_inputs,
             '--mpd_output', os.path.join(output_dir, manifest),
-            '--segment_duration', '4'
+            '--segment_duration', '4',
             '--generate_static_live_mpd'
         ]
 
