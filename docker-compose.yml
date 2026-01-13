@@ -83,5 +83,17 @@ services:
       redis:
         condition: service_healthy
 
+  runner:
+    image: ghcr.io/puppeteer/puppeteer:latest
+    user: root
+    working_dir: /client
+    volumes:
+      - ./experiments:/client
+    depends_on:
+      - web
+      - redis
+    command: >
+      bash -lc "npm install && node runner.js"
+
 volumes:
   postgres_data:

@@ -2,10 +2,12 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import login
 from .forms import VideoForm
+from .tasks import search_videos, run_network_emulation
+from .models import Video
 from django.http import JsonResponse
 from celery.result import AsyncResult
-from .models import Video
-from .tasks import search_videos
+from django.http import JsonResponse
+import json
 
 def home_view(request):
     return render (request, "home.html")
@@ -104,3 +106,12 @@ def detailed_view(request, id):
         "video": video
     }
     return render(request, "detailed_view.html", context)
+
+def start_emulation(request):
+    data = json.loads(request.body)
+    task = run_network_emulation.delay(
+        video_id=data["video_id"],
+        trace=data.get("trace", "lte.csv"),
+        duration=data.get("duration", 60),
+    )
+    return JsonResponse({"task_id": task.id})

@@ -13,6 +13,7 @@ urlpatterns = [
     path("search/", views.search, name="search"),
     path("detailed_view/<int:id>/", views.detailed_view, name="detailed_view"),
     path("status/<str:task_id>/", views.task_status, name="task_status"),
+    path("experiments/start/", views.start_emulation, name="start_emulation"),
 ]
 
 if settings.DEBUG:

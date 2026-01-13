@@ -4,10 +4,11 @@ import os
 import shutil
 import subprocess
 import json
-from pathlib import Path
-from django.core.files import File
+import uuid
+import redis
 from django.core.files.base import ContentFile
 from django.db import transaction
+from django.conf import settings
 
 @shared_task
 def search_videos(query):
@@ -23,6 +24,24 @@ def search_videos(query):
         "count": count,
         "results": list(results.values("id", "title", "description"))
     }
+
+@shared_task
+def run_network_emulation(video_id, trace, duration):
+    job_id = str(uuid.uuid4())
+
+    job = {
+        "job_id": job_id,
+        "video_id": video_id,
+        "trace": trace,
+        "duration": duration,
+    }
+
+    redis.Redis.from_url(settings.REDIS_URL).lpush(
+        "emulation_jobs",
+        json.dumps(job)
+    )
+    
+    return {"job_id": job_id}
 
 @shared_task
 def encode_video(video_id):
@@ -66,7 +85,7 @@ def encode_video(video_id):
             {'name': '720p', 'width': 1280, 'height': 720, 'bitrate': '2000k', 'maxrate': '3000k'},
             {'name': '1080p', 'width': 1920, 'height': 1080, 'bitrate': '4000k', 'maxrate': '6000k'},
         ]
-        
+
         qualities = [q for q in all_qualities if q['height'] <= source_height]
         
         if not qualities:

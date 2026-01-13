@@ -1,0 +1,8 @@
+{
+  "name": "abr-trace-client",
+  "private": true,
+  "dependencies": {
+    "puppeteer": "^24.15.0",
+    "redis": "^4.7.0"
+  }
+}

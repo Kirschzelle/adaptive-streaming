@@ -221,6 +221,20 @@ a {
     background-color: black;
 }
 
+#run-emulation {
+    margin-top: 10px;
+    padding: 12px 20px;
+    border: none;
+    background-color: var(--primary-color);
+    color: var(--primary-bg-color);
+    cursor: pointer;
+    font-size: 16px;
+}
+
+#run-emulation:hover {
+    background-color: var(--search-hover-color);
+}
+
 .errorlist {
     margin: 0 0 8px;
     padding: 0;

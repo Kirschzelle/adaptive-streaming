@@ -1,0 +1,128 @@
+{
+  "url": "http://web:8000/detailed_view/20/?autoplay=1",
+  "tracePath": "traces/lte.csv",
+  "startedAt": 1768307459594,
+  "finishedAt": 1768307707104,
+  "appliedNetworkProfile": [
+    {
+      "wall_ms": 3,
+      "timestamp_s": 0,
+      "download_kbps": 5000,
+      "upload_kbps": 1000,
+      "latency_ms": 40
+    },
+    {
+      "wall_ms": 1604,
+      "timestamp_s": 1,
+      "download_kbps": 3000,
+      "upload_kbps": 800,
+      "latency_ms": 60
+    },
+    {
+      "wall_ms": 2606,
+      "timestamp_s": 2,
+      "download_kbps": 1200,
+      "upload_kbps": 500,
+      "latency_ms": 120
+    },
+    {
+      "wall_ms": 3607,
+      "timestamp_s": 3,
+      "download_kbps": 800,
+      "upload_kbps": 300,
+      "latency_ms": 150
+    },
+    {
+      "wall_ms": 4608,
+      "timestamp_s": 4,
+      "download_kbps": 2500,
+      "upload_kbps": 700,
+      "latency_ms": 80
+    },
+    {
+      "wall_ms": 5610,
+      "timestamp_s": 5,
+      "download_kbps": 4500,
+      "upload_kbps": 1000,
+      "latency_ms": 50
+    }
+  ],
+  "qoeProbe": {
+    "t0": 139,
+    "events": [],
+    "samples": [],
+    "lastWaitingAt": null,
+    "startupAt": null,
+    "startedPlaying": false
+  },
+  "shakaStatsSnapshot": {
+    "width": 1280,
+    "height": 720,
+    "streamBandwidth": 3028574,
+    "decodedFrames": 5884,
+    "droppedFrames": 0,
+    "corruptedFrames": 0,
+    "stallsDetected": 0,
+    "gapsJumped": 0,
+    "estimatedBandwidth": 3804963.716668327,
+    "completionPercent": 100,
+    "loadLatency": 0.11500000953674316,
+    "manifestTimeSeconds": 0.05900001525878906,
+    "drmTimeSeconds": null,
+    "playTime": 245.8949999809265,
+    "pauseTime": 0,
+    "bufferingTime": 0.9570000171661377,
+    "licenseTime": null,
+    "liveLatency": null,
+    "maxSegmentDuration": 5,
+    "stateHistory": [
+      {
+        "timestamp": 1768307460.251,
+        "state": "buffering",
+        "duration": 0.9570000171661377
+      },
+      {
+        "timestamp": 1768307461.208,
+        "state": "playing",
+        "duration": 245.8949999809265
+      }
+    ],
+    "switchHistory": [
+      {
+        "timestamp": 1768307460.251,
+        "id": 2,
+        "type": "variant",
+        "fromAdaptation": true,
+        "bandwidth": 3028574
+      },
+      {
+        "timestamp": 1768307460.819,
+        "id": 1,
+        "type": "variant",
+        "fromAdaptation": true,
+        "bandwidth": 1430413
+      },
+      {
+        "timestamp": 1768307462.199,
+        "id": 0,
+        "type": "variant",
+        "fromAdaptation": true,
+        "bandwidth": 832658
+      },
+      {
+        "timestamp": 1768307464.202,
+        "id": 1,
+        "type": "variant",
+        "fromAdaptation": true,
+        "bandwidth": 1430413
+      },
+      {
+        "timestamp": 1768307465.203,
+        "id": 2,
+        "type": "variant",
+        "fromAdaptation": true,
+        "bandwidth": 3028574
+      }
+    ]
+  }
+}
