@@ -89,11 +89,13 @@ services:
     working_dir: /client
     volumes:
       - ./experiments:/client
+      - runner_node_modules:/client/node_modules
     depends_on:
       - web
       - redis
     command: >
-      bash -lc "npm install && node runner.js"
+      bash -lc "npm ci && node runner.js"
 
 volumes:
   postgres_data:
+  runner_node_modules:

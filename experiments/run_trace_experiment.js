@@ -3,8 +3,6 @@ const path = require("path");
 const puppeteer = require("puppeteer");
 
 const NAV_TIMEOUT_MS = 120000;
-const ATTACH_INTERVAL_MS = 250;
-const SAMPLE_INTERVAL_MS = 1000;
 
 function getArg(name, def = null) {
   const idx = process.argv.indexOf(`--${name}`);
@@ -22,7 +20,7 @@ function parseCsvTrace(csvText) {
   const lines = csvText.split(/\r?\n/).filter(Boolean);
   if (lines.length < 2) throw new Error("Trace CSV must have header + at least 1 row");
 
-  const header = lines[0].split(",").map(s => s.trim());
+  const header = lines[0].split(",").map((s) => s.trim());
   const col = (name) => header.indexOf(name);
 
   const timeStamp = col("timestamp_s");
@@ -30,29 +28,32 @@ function parseCsvTrace(csvText) {
   const upload = col("upload_kbps");
   const latency = col("latency_ms");
 
-  if ([timeStamp, download, upload, latency].some(i => i === -1)) {
+  if ([timeStamp, download, upload, latency].some((i) => i === -1)) {
     throw new Error("CSV header must include: timestamp_s,download_kbps,upload_kbps,latency_ms");
   }
 
-  return lines.slice(1).map(line => {
-    const p = line.split(",").map(s => s.trim());
-    return {
-      timestamp_s: Number(p[timeStamp]),
-      download_kbps: Number(p[download]),
-      upload_kbps: Number(p[upload]),
-      latency_ms: Number(p[latency]),
-    };
-  }).sort((a, b) => a.timestamp_s - b.timestamp_s);
+  return lines
+    .slice(1)
+    .map((line) => {
+      const p = line.split(",").map((s) => s.trim());
+      return {
+        timestamp_s: Number(p[timeStamp]),
+        download_kbps: Number(p[download]),
+        upload_kbps: Number(p[upload]),
+        latency_ms: Number(p[latency]),
+      };
+    })
+    .sort((a, b) => a.timestamp_s - b.timestamp_s);
 }
 
 async function sleep(ms) {
-  return new Promise(r => setTimeout(r, ms));
+  return new Promise((r) => setTimeout(r, ms));
 }
 
 (async () => {
-  const url = mustGetArg("url")
+  const url = mustGetArg("url");
   const tracePath = getArg("trace", "traces/lte.csv");
-  const out = mustGetArg("out")
+  const out = mustGetArg("out");
   const duration = Number(getArg("duration", "60"));
 
   fs.mkdirSync(path.dirname(out), { recursive: true });
@@ -77,86 +78,8 @@ async function sleep(ms) {
 
   const startedAt = Date.now();
   const applied = [];
-
-  await page.evaluateOnNewDocument(() => {
-    window.__qoe = {
-      t0: performance.now(),
-      events: [],
-      samples: [],
-      lastWaitingAt: null,
-      startupAt: null,
-      startedPlaying: false,
-    };
-
-    function nowS() { return (performance.now() - window.__qoe.t0) / 1000.0; }
-
-    function attachVideo(video) {
-      if (!video || video.__qoeAttached) return;
-      video.__qoeAttached = true;
-
-      const pushEvent = (type, extra = {}) => {
-        window.__qoe.events.push({ t: nowS(), type, ...extra });
-      };
-
-      video.addEventListener("playing", () => {
-        if (!window.__qoe.startedPlaying) {
-          window.__qoe.startedPlaying = true;
-          window.__qoe.startupAt = nowS();
-          pushEvent("startup_playing");
-        }
-        pushEvent("playing");
-        if (window.__qoe.lastWaitingAt !== null) {
-          const stallDur = nowS() - window.__qoe.lastWaitingAt;
-          pushEvent("stall_end", { stallDur });
-          window.__qoe.lastWaitingAt = null;
-        }
-      });
-
-      video.addEventListener("waiting", () => {
-        pushEvent("waiting");
-        if (window.__qoe.startedPlaying && window.__qoe.lastWaitingAt === null) {
-          window.__qoe.lastWaitingAt = nowS();
-          pushEvent("stall_start");
-        }
-      });
-
-      video.addEventListener("stalled", () => pushEvent("stalled"));
-      video.addEventListener("timeupdate", () => {
-      });
-    }
-
-    setInterval(() => {
-      const v = document.querySelector("video");
-      if (v) attachVideo(v);
-    }, ATTACH_INTERVAL_MS);
-
-    setInterval(() => {
-      const v = document.querySelector("video");
-      if (!v) return;
-
-      let bufEnd = null;
-      try {
-        if (v.buffered && v.buffered.length > 0) bufEnd = v.buffered.end(v.buffered.length - 1);
-      } catch (_) {}
-
-      const droppedFrames = (typeof v.getVideoPlaybackQuality === "function")
-        ? v.getVideoPlaybackQuality().droppedVideoFrames
-        : null;
-
-      window.__qoe.samples.push({
-        t: (performance.now() - window.__qoe.t0) / 1000.0,
-        currentTime: v.currentTime,
-        readyState: v.readyState,
-        paused: v.paused,
-        playbackRate: v.playbackRate,
-        bufferEnd: bufEnd,
-        bufferLevel: (bufEnd !== null) ? Math.max(0, bufEnd - v.currentTime) : null,
-        droppedFrames,
-      });
-    }, SAMPLE_INTERVAL_MS);
-  });
-
   const first = trace[0];
+
   await cdp.send("Network.emulateNetworkConditions", {
     offline: false,
     downloadThroughput: (first.download_kbps * 1000) / 8,
@@ -169,6 +92,16 @@ async function sleep(ms) {
   await page.goto(url, { waitUntil: "domcontentloaded", timeout: NAV_TIMEOUT_MS });
 
   await page.waitForSelector("video", { timeout: NAV_TIMEOUT_MS });
+
+  await page.evaluate(() => {
+    const v = document.querySelector("video");
+    if (v) {
+      v.muted = true;
+      v.autoplay = true;
+      const p = v.play();
+      if (p && typeof p.catch === "function") p.catch(() => {});
+    }
+  });
 
   const traceTask = (async () => {
     for (let i = 1; i < trace.length; i++) {
@@ -185,13 +118,13 @@ async function sleep(ms) {
       });
 
       applied.push({ wall_ms: Date.now() - startedAt, ...cur });
-      console.log(`Applied t=${cur.timestamp_s}s down=${cur.download_kbps}kbps rtt=${cur.latency_ms}ms`);
+      console.log(
+        `Applied t=${cur.timestamp_s}s down=${cur.download_kbps}kbps up=${cur.upload_kbps}kbps rtt=${cur.latency_ms}ms`
+      );
     }
   })();
 
   await sleep(duration * 1000);
-
-  const qoe = await page.evaluate(() => window.__qoe || null);
 
   const shakaStats = await page.evaluate(() => {
     try {
@@ -202,6 +135,51 @@ async function sleep(ms) {
     return null;
   });
 
+  const shakaTrackInfo = await page.evaluate(() => {
+    try {
+      if (!window.player) return null;
+
+      const tracks =
+        typeof window.player.getVariantTracks === "function"
+          ? window.player.getVariantTracks().map((t) => ({
+              id: t.id,
+              bandwidth: t.bandwidth,
+              width: t.width,
+              height: t.height,
+              frameRate: t.frameRate || null,
+              codecs: t.codecs || null,
+              active: t.active || false,
+            }))
+          : null;
+
+      return { tracks };
+    } catch (e) {
+      return { error: String(e) };
+    }
+  });
+
+  let derivedFromShaka = null;
+  if (shakaStats && Array.isArray(shakaStats.stateHistory)) {
+    const buffering = shakaStats.stateHistory.filter((x) => x.state === "buffering");
+    const totalBufferingS = buffering.reduce((acc, x) => acc + (x.duration || 0), 0);
+
+    const startupBufferingS = buffering.length > 0 ? buffering[0].duration : null;
+    const stallCount = Math.max(0, buffering.length - 1);
+    const stallTimeS = buffering.slice(1).reduce((acc, x) => acc + (x.duration || 0), 0);
+
+    const switchCount = Array.isArray(shakaStats.switchHistory)
+      ? Math.max(0, shakaStats.switchHistory.length - 1)
+      : null;
+
+    derivedFromShaka = {
+      startupBufferingS,
+      stallCount,
+      stallTimeS,
+      totalBufferingS,
+      switchCount,
+    };
+  }
+
   await traceTask.catch(() => {});
 
   const result = {
@@ -209,13 +187,19 @@ async function sleep(ms) {
     tracePath,
     startedAt,
     finishedAt: Date.now(),
+    durationRequestedS: duration,
     appliedNetworkProfile: applied,
-    qoeProbe: qoe,
+
     shakaStatsSnapshot: shakaStats,
+    shakaTrackInfo,
+    derivedFromShaka,
   };
 
   fs.writeFileSync(out, JSON.stringify(result, null, 2));
   console.log("OK, wrote", out);
 
   await browser.close();
-})();
+})().catch((err) => {
+  console.error("run_trace_experiment failed:", err);
+  process.exit(1);
+});
