@@ -21,5 +21,6 @@
     {% endif %}
         <button id="run-emulation" data-video-id="{{ video.id }}" data-csrf-token="{{ csrf_token }}" data-duration="{{ video.duration }}">Run network emulation</button>
 </div>
+{{ trace_files|json_script:"trace-files" }}
 <script src="{% static 'js/emulation.js' %}"></script>
 {% endblock %}

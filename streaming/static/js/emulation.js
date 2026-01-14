@@ -2,6 +2,7 @@ const MAX_DURATION = 600;
 
 document.addEventListener("DOMContentLoaded", () => {
   const button = document.getElementById("run-emulation");
+  const traceFiles = JSON.parse(document.getElementById("trace-files").textContent);
 
   button.addEventListener("click", async () => {
     const videoId = button.dataset.videoId;
@@ -18,8 +19,8 @@ document.addEventListener("DOMContentLoaded", () => {
         },
         body: JSON.stringify({
           video_id: Number(videoId),
-          trace: "lte.csv",
-          duration: durationToRun,
+          traces: traceFiles,
+          duration: 30, //change this to durationToRun, for now just 30sec
         }),
       });
 

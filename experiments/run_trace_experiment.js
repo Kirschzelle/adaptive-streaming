@@ -3,6 +3,7 @@ const path = require("path");
 const puppeteer = require("puppeteer");
 
 const NAV_TIMEOUT_MS = 120000;
+const PLAYER_WAIT_MS = 15000;
 
 function getArg(name, def = null) {
   const idx = process.argv.indexOf(`--${name}`);
@@ -17,7 +18,7 @@ function mustGetArg(name) {
 }
 
 function parseCsvTrace(csvText) {
-  const lines = csvText.split(/\r?\n/).filter(Boolean);
+  const lines = csvText.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
   if (lines.length < 2) throw new Error("Trace CSV must have header + at least 1 row");
 
   const header = lines[0].split(",").map((s) => s.trim());
@@ -25,11 +26,9 @@ function parseCsvTrace(csvText) {
 
   const timeStamp = col("timestamp_s");
   const download = col("download_kbps");
-  const upload = col("upload_kbps");
-  const latency = col("latency_ms");
 
-  if ([timeStamp, download, upload, latency].some((i) => i === -1)) {
-    throw new Error("CSV header must include: timestamp_s,download_kbps,upload_kbps,latency_ms");
+  if ([timeStamp, download].some((i) => i === -1)) {
+    throw new Error("CSV header must include: timestamp_s,download_kbps");
   }
 
   return lines
@@ -38,9 +37,7 @@ function parseCsvTrace(csvText) {
       const p = line.split(",").map((s) => s.trim());
       return {
         timestamp_s: Number(p[timeStamp]),
-        download_kbps: Number(p[download]),
-        upload_kbps: Number(p[upload]),
-        latency_ms: Number(p[latency]),
+        download_kbps: Number(p[download])
       };
     })
     .sort((a, b) => a.timestamp_s - b.timestamp_s);
@@ -48,6 +45,18 @@ function parseCsvTrace(csvText) {
 
 async function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
+}
+
+async function waitForShakaPlayer(page, timeoutMs) {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    const hasPlayer = await page.evaluate(() =>
+      !!(window.player && typeof window.player.getStats === "function")
+    );
+    if (hasPlayer) return true;
+    await sleep(250);
+  }
+  return false;
 }
 
 (async () => {
@@ -83,8 +92,8 @@ async function sleep(ms) {
   await cdp.send("Network.emulateNetworkConditions", {
     offline: false,
     downloadThroughput: (first.download_kbps * 1000) / 8,
-    uploadThroughput: (first.upload_kbps * 1000) / 8,
-    latency: first.latency_ms,
+    uploadThroughput: 0,
+    latency: 0,
   });
   applied.push({ wall_ms: Date.now() - startedAt, ...first });
 
@@ -105,6 +114,7 @@ async function sleep(ms) {
 
   const traceTask = (async () => {
     for (let i = 1; i < trace.length; i++) {
+      if ((Date.now() - startedAt) >= duration * 1000) break;
       const prev = trace[i - 1];
       const cur = trace[i];
       const waitMs = Math.max(0, (cur.timestamp_s - prev.timestamp_s) * 1000);
@@ -113,18 +123,17 @@ async function sleep(ms) {
       await cdp.send("Network.emulateNetworkConditions", {
         offline: false,
         downloadThroughput: (cur.download_kbps * 1000) / 8,
-        uploadThroughput: (cur.upload_kbps * 1000) / 8,
-        latency: cur.latency_ms,
+        uploadThroughput: 0,
+        latency: 0,
       });
 
       applied.push({ wall_ms: Date.now() - startedAt, ...cur });
-      console.log(
-        `Applied t=${cur.timestamp_s}s down=${cur.download_kbps}kbps up=${cur.upload_kbps}kbps rtt=${cur.latency_ms}ms`
-      );
+      console.log(`Applied t=${cur.timestamp_s}s download=${cur.download_kbps}`);
     }
   })();
 
   await sleep(duration * 1000);
+  await waitForShakaPlayer(page, PLAYER_WAIT_MS);
 
   const shakaStats = await page.evaluate(() => {
     try {

@@ -1,0 +1,200 @@
+{
+  "url": "http://web:8000/detailed_view/1/?autoplay=1",
+  "tracePath": "traces/oboe_trace_0.csv",
+  "startedAt": 1768389909693,
+  "finishedAt": 1768389950666,
+  "durationRequestedS": 30,
+  "appliedNetworkProfile": [
+    {
+      "wall_ms": 1,
+      "timestamp_s": 0.474,
+      "download_kbps": 3168.645
+    },
+    {
+      "wall_ms": 1170,
+      "timestamp_s": 0.905,
+      "download_kbps": 3183.223
+    },
+    {
+      "wall_ms": 2177,
+      "timestamp_s": 1.911,
+      "download_kbps": 3135.75
+    },
+    {
+      "wall_ms": 3857,
+      "timestamp_s": 3.59,
+      "download_kbps": 3133.448
+    },
+    {
+      "wall_ms": 6535,
+      "timestamp_s": 6.267,
+      "download_kbps": 3128.282
+    },
+    {
+      "wall_ms": 8635,
+      "timestamp_s": 8.367,
+      "download_kbps": 3123.033
+    },
+    {
+      "wall_ms": 10601,
+      "timestamp_s": 10.332,
+      "download_kbps": 3778.884
+    },
+    {
+      "wall_ms": 13126,
+      "timestamp_s": 12.857,
+      "download_kbps": 3467.06
+    },
+    {
+      "wall_ms": 14983,
+      "timestamp_s": 14.714,
+      "download_kbps": 3786.162
+    },
+    {
+      "wall_ms": 21104,
+      "timestamp_s": 20.832,
+      "download_kbps": 2883.617
+    },
+    {
+      "wall_ms": 26641,
+      "timestamp_s": 26.367,
+      "download_kbps": 3187.567
+    },
+    {
+      "wall_ms": 40973,
+      "timestamp_s": 40.699,
+      "download_kbps": 1177.762
+    }
+  ],
+  "shakaStatsSnapshot": {
+    "width": 854,
+    "height": 480,
+    "streamBandwidth": 1430413,
+    "decodedFrames": 712,
+    "droppedFrames": 0,
+    "corruptedFrames": 0,
+    "stallsDetected": 0,
+    "gapsJumped": 0,
+    "estimatedBandwidth": 19582179.517295685,
+    "completionPercent": 12,
+    "loadLatency": 0.09399986267089844,
+    "manifestTimeSeconds": 0.031999826431274414,
+    "drmTimeSeconds": null,
+    "playTime": 29.55900001525879,
+    "pauseTime": 0,
+    "bufferingTime": 0.4199998378753662,
+    "licenseTime": null,
+    "liveLatency": null,
+    "maxSegmentDuration": 5,
+    "stateHistory": [
+      {
+        "timestamp": 1768389910.456,
+        "state": "buffering",
+        "duration": 0.4199998378753662
+      },
+      {
+        "timestamp": 1768389910.876,
+        "state": "playing",
+        "duration": 29.55900001525879
+      }
+    ],
+    "switchHistory": [
+      {
+        "timestamp": 1768389910.456,
+        "id": 1,
+        "type": "variant",
+        "fromAdaptation": true,
+        "bandwidth": 1430413
+      },
+      {
+        "timestamp": 1768389910.872,
+        "id": 3,
+        "type": "variant",
+        "fromAdaptation": true,
+        "bandwidth": 5709099
+      },
+      {
+        "timestamp": 1768389916.228,
+        "id": 1,
+        "type": "variant",
+        "fromAdaptation": true,
+        "bandwidth": 1430413
+      },
+      {
+        "timestamp": 1768389920.293,
+        "id": 2,
+        "type": "variant",
+        "fromAdaptation": true,
+        "bandwidth": 3028574
+      },
+      {
+        "timestamp": 1768389922.819,
+        "id": 1,
+        "type": "variant",
+        "fromAdaptation": true,
+        "bandwidth": 1430413
+      },
+      {
+        "timestamp": 1768389924.676,
+        "id": 2,
+        "type": "variant",
+        "fromAdaptation": true,
+        "bandwidth": 3028574
+      },
+      {
+        "timestamp": 1768389930.797,
+        "id": 1,
+        "type": "variant",
+        "fromAdaptation": true,
+        "bandwidth": 1430413
+      }
+    ]
+  },
+  "shakaTrackInfo": {
+    "tracks": [
+      {
+        "id": 0,
+        "bandwidth": 832658,
+        "width": 640,
+        "height": 360,
+        "frameRate": 24.390243902439025,
+        "codecs": "vp09.00.21.08.01.01.01.01.01, opus",
+        "active": false
+      },
+      {
+        "id": 1,
+        "bandwidth": 1430413,
+        "width": 854,
+        "height": 480,
+        "frameRate": 24.390243902439025,
+        "codecs": "vp09.00.30.08.01.01.01.01.01, opus",
+        "active": true
+      },
+      {
+        "id": 2,
+        "bandwidth": 3028574,
+        "width": 1280,
+        "height": 720,
+        "frameRate": 24.390243902439025,
+        "codecs": "vp09.00.31.08.01.01.01.01.01, opus",
+        "active": false
+      },
+      {
+        "id": 3,
+        "bandwidth": 5709099,
+        "width": 1920,
+        "height": 1080,
+        "frameRate": 24.390243902439025,
+        "codecs": "vp09.00.40.08.01.01.01.01.01, opus",
+        "active": false
+      }
+    ]
+  },
+  "derivedFromShaka": {
+    "startupBufferingS": 0.4199998378753662,
+    "stallCount": 0,
+    "stallTimeS": 0,
+    "totalBufferingS": 0.4199998378753662,
+    "switchCount": 6
+  }
+}

@@ -1,0 +1,177 @@
+{
+  "url": "http://web:8000/detailed_view/1/?autoplay=1",
+  "tracePath": "traces/oboe_trace_139.csv",
+  "startedAt": 1768390047468,
+  "finishedAt": 1768390078342,
+  "durationRequestedS": 30,
+  "appliedNetworkProfile": [
+    {
+      "wall_ms": 1,
+      "timestamp_s": 0.463,
+      "download_kbps": 3239.216
+    },
+    {
+      "wall_ms": 1128,
+      "timestamp_s": 0.899,
+      "download_kbps": 3249.713
+    },
+    {
+      "wall_ms": 2125,
+      "timestamp_s": 1.896,
+      "download_kbps": 3200.109
+    },
+    {
+      "wall_ms": 3206,
+      "timestamp_s": 2.976,
+      "download_kbps": 3182.976
+    },
+    {
+      "wall_ms": 4886,
+      "timestamp_s": 4.656,
+      "download_kbps": 3177.002
+    },
+    {
+      "wall_ms": 6957,
+      "timestamp_s": 6.726,
+      "download_kbps": 3186.705
+    },
+    {
+      "wall_ms": 9766,
+      "timestamp_s": 9.534,
+      "download_kbps": 2663.279
+    },
+    {
+      "wall_ms": 14601,
+      "timestamp_s": 14.369,
+      "download_kbps": 1784.956
+    },
+    {
+      "wall_ms": 17781,
+      "timestamp_s": 17.548,
+      "download_kbps": 2182.554
+    },
+    {
+      "wall_ms": 21286,
+      "timestamp_s": 21.051,
+      "download_kbps": 2128.415
+    },
+    {
+      "wall_ms": 25073,
+      "timestamp_s": 24.836,
+      "download_kbps": 2022.203
+    },
+    {
+      "wall_ms": 28592,
+      "timestamp_s": 28.354,
+      "download_kbps": 2139.774
+    },
+    {
+      "wall_ms": 30874,
+      "timestamp_s": 30.635,
+      "download_kbps": 3404.408
+    }
+  ],
+  "shakaStatsSnapshot": {
+    "width": 854,
+    "height": 480,
+    "streamBandwidth": 1430413,
+    "decodedFrames": 710,
+    "droppedFrames": 0,
+    "corruptedFrames": 0,
+    "stallsDetected": 0,
+    "gapsJumped": 0,
+    "estimatedBandwidth": 14098024.096385542,
+    "completionPercent": 12,
+    "loadLatency": 0.09400010108947754,
+    "manifestTimeSeconds": 0.0280001163482666,
+    "drmTimeSeconds": null,
+    "playTime": 29.47000002861023,
+    "pauseTime": 0,
+    "bufferingTime": 0.5110001564025879,
+    "licenseTime": null,
+    "liveLatency": null,
+    "maxSegmentDuration": 5,
+    "stateHistory": [
+      {
+        "timestamp": 1768390048.182,
+        "state": "buffering",
+        "duration": 0.5110001564025879
+      },
+      {
+        "timestamp": 1768390048.693,
+        "state": "playing",
+        "duration": 29.47000002861023
+      }
+    ],
+    "switchHistory": [
+      {
+        "timestamp": 1768390048.182,
+        "id": 2,
+        "type": "variant",
+        "fromAdaptation": true,
+        "bandwidth": 3028574
+      },
+      {
+        "timestamp": 1768390048.688,
+        "id": 3,
+        "type": "variant",
+        "fromAdaptation": true,
+        "bandwidth": 5709099
+      },
+      {
+        "timestamp": 1768390049.593,
+        "id": 1,
+        "type": "variant",
+        "fromAdaptation": true,
+        "bandwidth": 1430413
+      }
+    ]
+  },
+  "shakaTrackInfo": {
+    "tracks": [
+      {
+        "id": 0,
+        "bandwidth": 832658,
+        "width": 640,
+        "height": 360,
+        "frameRate": 24.390243902439025,
+        "codecs": "vp09.00.21.08.01.01.01.01.01, opus",
+        "active": false
+      },
+      {
+        "id": 1,
+        "bandwidth": 1430413,
+        "width": 854,
+        "height": 480,
+        "frameRate": 24.390243902439025,
+        "codecs": "vp09.00.30.08.01.01.01.01.01, opus",
+        "active": true
+      },
+      {
+        "id": 2,
+        "bandwidth": 3028574,
+        "width": 1280,
+        "height": 720,
+        "frameRate": 24.390243902439025,
+        "codecs": "vp09.00.31.08.01.01.01.01.01, opus",
+        "active": false
+      },
+      {
+        "id": 3,
+        "bandwidth": 5709099,
+        "width": 1920,
+        "height": 1080,
+        "frameRate": 24.390243902439025,
+        "codecs": "vp09.00.40.08.01.01.01.01.01, opus",
+        "active": false
+      }
+    ]
+  },
+  "derivedFromShaka": {
+    "startupBufferingS": 0.5110001564025879,
+    "stallCount": 0,
+    "stallTimeS": 0,
+    "totalBufferingS": 0.5110001564025879,
+    "switchCount": 2
+  }
+}

@@ -210,3 +210,4 @@ __marimo__/
 staticfiles
 media
 experiments/node_modules
+experiments/results/plots

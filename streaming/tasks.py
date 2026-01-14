@@ -26,22 +26,24 @@ def search_videos(query):
     }
 
 @shared_task
-def run_network_emulation(video_id, trace, duration):
-    job_id = str(uuid.uuid4())
+def run_network_emulation(video_id, traces, duration):
+    r = redis.Redis.from_url(settings.REDIS_URL)
 
-    job = {
-        "job_id": job_id,
-        "video_id": video_id,
-        "trace": trace,
-        "duration": duration,
-    }
+    job_ids = []
+    for trace in traces:
+        job_id = str(uuid.uuid4())
+        job_ids.append(job_id)
 
-    redis.Redis.from_url(settings.REDIS_URL).lpush(
-        "emulation_jobs",
-        json.dumps(job)
-    )
+        job = {
+            "job_id": job_id,
+            "video_id": video_id,
+            "trace": trace,
+            "duration": duration,
+        }
+
+        r.lpush("emulation_jobs", json.dumps(job))
     
-    return {"job_id": job_id}
+    return {"job_ids": job_ids, "count": len(job_ids)}
 
 @shared_task
 def encode_video(video_id):

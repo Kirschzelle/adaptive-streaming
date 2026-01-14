@@ -6,8 +6,9 @@ from .tasks import search_videos, run_network_emulation
 from .models import Video
 from django.http import JsonResponse
 from celery.result import AsyncResult
-from django.http import JsonResponse
+from django.conf import settings
 import json
+from pathlib import Path
 
 def home_view(request):
     return render (request, "home.html")
@@ -101,17 +102,22 @@ def upload_view(request):
 
 def detailed_view(request, id):
     video = get_object_or_404(Video, id=id)
+    traces_dir = Path(settings.BASE_DIR) / "experiments" / "traces"
+    trace_files = sorted([p.name for p in traces_dir.glob("*.csv")])
 
     context = {
-        "video": video
+        "video": video,
+        "trace_files": trace_files
     }
     return render(request, "detailed_view.html", context)
 
 def start_emulation(request):
     data = json.loads(request.body)
+
     task = run_network_emulation.delay(
         video_id=data["video_id"],
-        trace=data.get("trace", "lte.csv"),
+        traces=data.get("traces"),
         duration=data.get("duration", 60),
     )
+    print(data.get("traces"))
     return JsonResponse({"task_id": task.id})
