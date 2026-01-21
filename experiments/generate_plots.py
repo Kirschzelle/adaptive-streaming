@@ -26,7 +26,7 @@ def compute_time_weighted_avg_bitrate_kbps(switch_history, fallback_play_time_s)
     pts.sort(key=lambda x: x[0])
 
     if len(pts) == 1:
-        return pts[0][1] / 1000.0  # kbps
+        return pts[0][1] / 1000.0
 
     total_dur = pts[-1][0] - pts[0][0]
     if total_dur <= 0 and fallback_play_time_s:
@@ -39,7 +39,7 @@ def compute_time_weighted_avg_bitrate_kbps(switch_history, fallback_play_time_s)
             t_next = pts[i + 1][0] if i + 1 < len(pts) else (pts[0][0] + total_dur)
             dt = max(0.0, t_next - t_i)
             acc += dt * bw_i
-        return (acc / total_dur) / 1000.0  # kbps
+        return (acc / total_dur) / 1000.0
 
     return (sum(bw for _, bw in pts) / len(pts)) / 1000.0
 
@@ -139,40 +139,34 @@ def generate_plots(path):
         plt.savefig(out_dir / f"{stem}_01b_latency.png", dpi=160)
         plt.close()
 
-    # -------- Plot 2: Selected bitrate over time --------
-    # Convert epoch timestamps to relative seconds using first switch timestamp as t0
-    sw_pts = [(float(s["timestamp"]), float(s["bandwidth"]) / 1000.0) for s in switch_history]  # kbps
+    # -------- Plot 2: Overlay bandwidth vs bitrate --------
+    sw_pts = [(float(s["timestamp"]), float(s["bandwidth"]) / 1000.0) for s in switch_history]
     sw_pts.sort(key=lambda x: x[0])
 
     if sw_pts:
-        t0 = sw_pts[0][0]
-        sw_t = [p[0] - t0 for p in sw_pts]
+        video_start_epoch = data.get("startedAt") / 1000.0
+        sw_t = [p[0] - video_start_epoch for p in sw_pts]
         sw_b = [p[1] for p in sw_pts]
 
         plt.figure()
-        plt.step(sw_t, sw_b, where="post")
-        plt.xlabel("Time since first switch (s)")
-        plt.ylabel("Selected bitrate (kbps)")
-        plt.title(f"Adaptive bitrate (ABR) selection — {stem}")
-        plt.grid(True)
-        plt.tight_layout()
-        plt.savefig(out_dir / f"{stem}_02_selected_bitrate.png", dpi=160)
-        plt.close()
-
-        # -------- Plot 3: Overlay bandwidth vs bitrate --------
-        plt.figure()
         plt.step(net_t, net_bw, where="post", label="Network bandwidth (kbps)")
-        plt.step(sw_t, sw_b, where="post", label="Selected bitrate (kbps)")
+        if sw_t and net_t:
+            sw_t_extended = sw_t + [net_t[-1]]
+            sw_b_extended = sw_b + [sw_b[-1]]
+            plt.step(sw_t_extended, sw_b_extended, where="post", label="Selected bitrate (kbps)")
+        else:
+            plt.step(sw_t, sw_b, where="post", label="Selected bitrate (kbps)")
+
         plt.xlabel("Time (s)")
         plt.ylabel("kbps")
         plt.title(f"Network vs selected bitrate — {stem}")
         plt.legend()
         plt.grid(True)
         plt.tight_layout()
-        plt.savefig(out_dir / f"{stem}_03_overlay.png", dpi=160)
+        plt.savefig(out_dir / f"{stem}_02_adaptive.png", dpi=160)
         plt.close()
 
-    # -------- Plot 4: Playback state timeline --------
+    # -------- Plot 3: Playback state timeline --------
     if state_history:
         t0s = float(state_history[0]["timestamp"])
         segments = []
@@ -183,27 +177,79 @@ def generate_plots(path):
             segments.append((cur_t, dur, st))
             cur_t += max(0.0, dur)
 
-        plt.figure()
+        plt.figure(figsize=(12, 3))  # Make it wider and shorter
+        
+        # Define distinct colors for each state
+        state_colors = {
+            'buffering': 'red',
+            'playing': 'green',
+            'paused': 'yellow',
+            'unknown': 'gray'
+        }
+        
         y = 0
         for (start, dur, st) in segments:
-            plt.broken_barh([(start, dur)], (y, 5), label=st)
+            color = state_colors.get(st, 'gray')
+            plt.broken_barh([(start, dur)], (y, 1), 
+                        facecolors=color, 
+                        edgecolor='black',
+                        linewidth=0.5,
+                        label=st)
 
-        plt.yticks([y + 2.5], ["playback"])
-        plt.xlabel("Time (s) (relative)")
-        plt.title(f"Playback state timeline (buffering/playing) — {stem}")
-        plt.grid(True, axis="x")
+        plt.yticks([y + 0.5], ["State"])
+        plt.xlabel("Time (s)")
+        plt.ylabel("")
+        plt.title(f"Playback state timeline — {stem}")
+        plt.grid(True, axis="x", alpha=0.3)
+        plt.xlim(0, cur_t)  # Set explicit x-axis limits
+        
+        # Create legend with unique states only
         handles, labels = plt.gca().get_legend_handles_labels()
-        uniq = []
-        seen = set()
-        for h, l in zip(handles, labels):
-            if l not in seen:
-                uniq.append((h, l))
-                seen.add(l)
-        if uniq:
-            plt.legend([x[0] for x in uniq], [x[1] for x in uniq], loc="upper right")
+        by_label = dict(zip(labels, handles))
+        plt.legend(by_label.values(), by_label.keys(), loc="upper right")
+        
         plt.tight_layout()
-        plt.savefig(out_dir / f"{stem}_04_state_timeline.png", dpi=160)
+        plt.savefig(out_dir / f"{stem}_03_state_timeline.png", dpi=160)
         plt.close()
+
+    buffer_samples = data.get('bufferSamples', [])
+    times = []
+    buffer_lengths = []
+    current_times = []
+    estimated_bw = []
+    stream_bw = []
+    
+    for sample in buffer_samples:
+        if sample.get('bufferLength') is not None:
+            wall_ms = sample['wall_ms']
+            times.append(wall_ms / 1000.0)
+            buffer_lengths.append(sample['bufferLength'])
+            current_times.append(sample['currentTime'])
+            
+            if sample.get('estimatedBandwidth'):
+                estimated_bw.append(sample['estimatedBandwidth'] / 1000.0)
+            else:
+                estimated_bw.append(None)
+            
+            if sample.get('streamBandwidth'):
+                stream_bw.append(sample['streamBandwidth'] / 1000.0)
+            else:
+                stream_bw.append(None)
+    
+    net = data.get("appliedNetworkProfile", [])
+    net_t = [float(p["timestamp_s"]) for p in net]
+    net_bw = [float(p["download_kbps"]) for p in net]
+    
+    # -------- Plot 4: Buffer Length Over Time --------
+    plt.figure(figsize=(12, 6))
+    plt.plot(times, buffer_lengths, 'b-', linewidth=2, marker='o', markersize=4)
+    plt.xlabel('Time (s)', fontsize=12)
+    plt.ylabel('Buffer Length (s)', fontsize=12)
+    plt.title(f'Buffer Length Over Time — {stem}', fontsize=14, fontweight='bold')
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig(out_dir / f'{stem}_04_buffer_length.png', dpi=160)
+    plt.close()
 
     # -------- Plot 5: QoE summary bar chart --------
     plt.figure()
@@ -271,5 +317,5 @@ if __name__ == "__main__":
         sys.exit(1)
 
     print(f"Found {len(matching_files)} result files")
-    #for json_path in matching_files:
-        #generate_plots(json_path)
+    for json_path in matching_files:
+        generate_plots(json_path)

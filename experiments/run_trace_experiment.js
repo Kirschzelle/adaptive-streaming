@@ -112,6 +112,63 @@ async function waitForShakaPlayer(page, timeoutMs) {
     }
   });
 
+  const bufferSamples = [];
+  const sampleIntervalMs = Number(getArg("sample-interval", "1000"));
+
+  const samplingTask = (async () => {
+    while ((Date.now() - startedAt) < duration * 1000) {
+      const sample = await page.evaluate(() => {
+        try {
+          const video = document.querySelector("video");
+          const sample = {
+            wall_ms: null,
+            currentTime: video ? video.currentTime : null,
+            buffered: null,
+            bufferLength: null,
+            paused: video ? video.paused : null,
+            readyState: video ? video.readyState : null,
+          };
+
+          if (video && video.buffered && video.buffered.length > 0) {
+            const ranges = [];
+            for (let i = 0; i < video.buffered.length; i++) {
+              ranges.push({
+                start: video.buffered.start(i),
+                end: video.buffered.end(i),
+              });
+            }
+            sample.buffered = ranges;
+
+            const ct = video.currentTime;
+            let bufferAhead = 0;
+            for (const range of ranges) {
+              if (range.start <= ct && range.end > ct) {
+                bufferAhead = range.end - ct;
+                break;
+              }
+            }
+            sample.bufferLength = bufferAhead;
+          }
+
+          if (window.player && typeof window.player.getStats === "function") {
+            const stats = window.player.getStats();
+            sample.estimatedBandwidth = stats.estimatedBandwidth || null;
+            sample.streamBandwidth = stats.streamBandwidth || null;
+          }
+
+          return sample;
+        } catch (e) {
+          return { error: String(e) };
+        }
+      });
+
+      sample.wall_ms = Date.now() - startedAt;
+      bufferSamples.push(sample);
+      
+      await sleep(sampleIntervalMs);
+    }
+  })();
+
   const traceTask = (async () => {
     for (let i = 1; i < trace.length; i++) {
       if ((Date.now() - startedAt) >= duration * 1000) break;
@@ -190,6 +247,7 @@ async function waitForShakaPlayer(page, timeoutMs) {
   }
 
   await traceTask.catch(() => {});
+  await samplingTask.catch(() => {});
 
   const result = {
     url,
@@ -199,6 +257,8 @@ async function waitForShakaPlayer(page, timeoutMs) {
     durationRequestedS: duration,
     appliedNetworkProfile: applied,
 
+    bufferSamples,
+    sampleIntervalMs,
     shakaStatsSnapshot: shakaStats,
     shakaTrackInfo,
     derivedFromShaka,

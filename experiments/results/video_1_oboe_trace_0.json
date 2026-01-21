@@ -1,8 +1,8 @@
 {
   "url": "http://web:8000/detailed_view/1/?autoplay=1",
   "tracePath": "traces/oboe_trace_0.csv",
-  "startedAt": 1768389909693,
-  "finishedAt": 1768389950666,
+  "startedAt": 1768986862119,
+  "finishedAt": 1768986903088,
   "durationRequestedS": 30,
   "appliedNetworkProfile": [
     {
@@ -11,142 +11,590 @@
       "download_kbps": 3168.645
     },
     {
-      "wall_ms": 1170,
+      "wall_ms": 1165,
       "timestamp_s": 0.905,
       "download_kbps": 3183.223
     },
     {
-      "wall_ms": 2177,
+      "wall_ms": 2173,
       "timestamp_s": 1.911,
       "download_kbps": 3135.75
     },
     {
-      "wall_ms": 3857,
+      "wall_ms": 3852,
       "timestamp_s": 3.59,
       "download_kbps": 3133.448
     },
     {
-      "wall_ms": 6535,
+      "wall_ms": 6530,
       "timestamp_s": 6.267,
       "download_kbps": 3128.282
     },
     {
-      "wall_ms": 8635,
+      "wall_ms": 8632,
       "timestamp_s": 8.367,
       "download_kbps": 3123.033
     },
     {
-      "wall_ms": 10601,
+      "wall_ms": 10597,
       "timestamp_s": 10.332,
       "download_kbps": 3778.884
     },
     {
-      "wall_ms": 13126,
+      "wall_ms": 13123,
       "timestamp_s": 12.857,
       "download_kbps": 3467.06
     },
     {
-      "wall_ms": 14983,
+      "wall_ms": 14981,
       "timestamp_s": 14.714,
       "download_kbps": 3786.162
     },
     {
-      "wall_ms": 21104,
+      "wall_ms": 21100,
       "timestamp_s": 20.832,
       "download_kbps": 2883.617
     },
     {
-      "wall_ms": 26641,
+      "wall_ms": 26635,
       "timestamp_s": 26.367,
       "download_kbps": 3187.567
     },
     {
-      "wall_ms": 40973,
+      "wall_ms": 40969,
       "timestamp_s": 40.699,
       "download_kbps": 1177.762
     }
   ],
+  "bufferSamples": [
+    {
+      "wall_ms": 736,
+      "currentTime": 0,
+      "buffered": null,
+      "bufferLength": null,
+      "paused": false,
+      "readyState": 0,
+      "estimatedBandwidth": null,
+      "streamBandwidth": null
+    },
+    {
+      "wall_ms": 1739,
+      "currentTime": 0.507298,
+      "buffered": [
+        {
+          "start": 0,
+          "end": 5
+        }
+      ],
+      "bufferLength": 4.4927019999999995,
+      "paused": false,
+      "readyState": 4,
+      "estimatedBandwidth": 6389618.272015546,
+      "streamBandwidth": 5709099
+    },
+    {
+      "wall_ms": 2740,
+      "currentTime": 1.508838,
+      "buffered": [
+        {
+          "start": 0,
+          "end": 5
+        }
+      ],
+      "bufferLength": 3.491162,
+      "paused": false,
+      "readyState": 4,
+      "estimatedBandwidth": 3088408.1969071254,
+      "streamBandwidth": 1430413
+    },
+    {
+      "wall_ms": 3741,
+      "currentTime": 2.509406,
+      "buffered": [
+        {
+          "start": 0,
+          "end": 5
+        }
+      ],
+      "bufferLength": 2.490594,
+      "paused": false,
+      "readyState": 4,
+      "estimatedBandwidth": 3095202.365401634,
+      "streamBandwidth": 1430413
+    },
+    {
+      "wall_ms": 4742,
+      "currentTime": 3.511046,
+      "buffered": [
+        {
+          "start": 0,
+          "end": 10
+        }
+      ],
+      "bufferLength": 6.488954,
+      "paused": false,
+      "readyState": 4,
+      "estimatedBandwidth": 2785528.4166119727,
+      "streamBandwidth": 1430413
+    },
+    {
+      "wall_ms": 5744,
+      "currentTime": 4.512653,
+      "buffered": [
+        {
+          "start": 0,
+          "end": 10
+        }
+      ],
+      "bufferLength": 5.487347,
+      "paused": false,
+      "readyState": 4,
+      "estimatedBandwidth": 2815975.9801451247,
+      "streamBandwidth": 1430413
+    },
+    {
+      "wall_ms": 6745,
+      "currentTime": 5.513768,
+      "buffered": [
+        {
+          "start": 0,
+          "end": 16.001
+        }
+      ],
+      "bufferLength": 10.487232000000002,
+      "paused": false,
+      "readyState": 4,
+      "estimatedBandwidth": 4400468.00975627,
+      "streamBandwidth": 1430413
+    },
+    {
+      "wall_ms": 7747,
+      "currentTime": 6.51522,
+      "buffered": [
+        {
+          "start": 0,
+          "end": 20
+        }
+      ],
+      "bufferLength": 13.48478,
+      "paused": false,
+      "readyState": 4,
+      "estimatedBandwidth": 4312271.560355612,
+      "streamBandwidth": 1430413
+    },
+    {
+      "wall_ms": 8748,
+      "currentTime": 7.516605,
+      "buffered": [
+        {
+          "start": 0,
+          "end": 20
+        }
+      ],
+      "bufferLength": 12.483395,
+      "paused": false,
+      "readyState": 4,
+      "estimatedBandwidth": 4312271.560355612,
+      "streamBandwidth": 1430413
+    },
+    {
+      "wall_ms": 9750,
+      "currentTime": 8.5191,
+      "buffered": [
+        {
+          "start": 0,
+          "end": 20
+        }
+      ],
+      "bufferLength": 11.4809,
+      "paused": false,
+      "readyState": 4,
+      "estimatedBandwidth": 4312271.560355612,
+      "streamBandwidth": 1430413
+    },
+    {
+      "wall_ms": 10752,
+      "currentTime": 9.52052,
+      "buffered": [
+        {
+          "start": 0,
+          "end": 20
+        }
+      ],
+      "bufferLength": 10.47948,
+      "paused": false,
+      "readyState": 4,
+      "estimatedBandwidth": 3800000,
+      "streamBandwidth": 3028574
+    },
+    {
+      "wall_ms": 11753,
+      "currentTime": 10.521393,
+      "buffered": [
+        {
+          "start": 0,
+          "end": 20
+        }
+      ],
+      "bufferLength": 9.478607,
+      "paused": false,
+      "readyState": 4,
+      "estimatedBandwidth": 3800000,
+      "streamBandwidth": 3028574
+    },
+    {
+      "wall_ms": 12754,
+      "currentTime": 11.521656,
+      "buffered": [
+        {
+          "start": 0,
+          "end": 20
+        }
+      ],
+      "bufferLength": 8.478344,
+      "paused": false,
+      "readyState": 4,
+      "estimatedBandwidth": 2991443.577904171,
+      "streamBandwidth": 3028574
+    },
+    {
+      "wall_ms": 13755,
+      "currentTime": 12.524086,
+      "buffered": [
+        {
+          "start": 0,
+          "end": 24.001
+        }
+      ],
+      "bufferLength": 11.476914,
+      "paused": false,
+      "readyState": 4,
+      "estimatedBandwidth": 156109283.0188679,
+      "streamBandwidth": 3028574
+    },
+    {
+      "wall_ms": 14757,
+      "currentTime": 13.525756,
+      "buffered": [
+        {
+          "start": 0,
+          "end": 24.001
+        }
+      ],
+      "bufferLength": 10.475244000000002,
+      "paused": false,
+      "readyState": 4,
+      "estimatedBandwidth": 156109283.0188679,
+      "streamBandwidth": 3028574
+    },
+    {
+      "wall_ms": 15759,
+      "currentTime": 14.527245,
+      "buffered": [
+        {
+          "start": 0,
+          "end": 25
+        }
+      ],
+      "bufferLength": 10.472755,
+      "paused": false,
+      "readyState": 4,
+      "estimatedBandwidth": 3800000,
+      "streamBandwidth": 3028574
+    },
+    {
+      "wall_ms": 16759,
+      "currentTime": 15.527751,
+      "buffered": [
+        {
+          "start": 0,
+          "end": 25
+        }
+      ],
+      "bufferLength": 9.472249,
+      "paused": false,
+      "readyState": 4,
+      "estimatedBandwidth": 3800000,
+      "streamBandwidth": 3028574
+    },
+    {
+      "wall_ms": 17760,
+      "currentTime": 16.527631,
+      "buffered": [
+        {
+          "start": 0,
+          "end": 25
+        }
+      ],
+      "bufferLength": 8.472369,
+      "paused": false,
+      "readyState": 4,
+      "estimatedBandwidth": 3732353.065993131,
+      "streamBandwidth": 3028574
+    },
+    {
+      "wall_ms": 18761,
+      "currentTime": 17.529381,
+      "buffered": [
+        {
+          "start": 0,
+          "end": 25
+        }
+      ],
+      "bufferLength": 7.470618999999999,
+      "paused": false,
+      "readyState": 4,
+      "estimatedBandwidth": 3756521.7017460363,
+      "streamBandwidth": 3028574
+    },
+    {
+      "wall_ms": 19761,
+      "currentTime": 18.529828,
+      "buffered": [
+        {
+          "start": 0,
+          "end": 30
+        }
+      ],
+      "bufferLength": 11.470172000000002,
+      "paused": false,
+      "readyState": 4,
+      "estimatedBandwidth": 3741094.1510114074,
+      "streamBandwidth": 3028574
+    },
+    {
+      "wall_ms": 20764,
+      "currentTime": 19.53197,
+      "buffered": [
+        {
+          "start": 0,
+          "end": 30
+        }
+      ],
+      "bufferLength": 10.468029999999999,
+      "paused": false,
+      "readyState": 4,
+      "estimatedBandwidth": 3741094.1510114074,
+      "streamBandwidth": 3028574
+    },
+    {
+      "wall_ms": 21765,
+      "currentTime": 20.533777,
+      "buffered": [
+        {
+          "start": 0,
+          "end": 30
+        }
+      ],
+      "bufferLength": 9.466223,
+      "paused": false,
+      "readyState": 4,
+      "estimatedBandwidth": 2900000,
+      "streamBandwidth": 1430413
+    },
+    {
+      "wall_ms": 22765,
+      "currentTime": 21.534122,
+      "buffered": [
+        {
+          "start": 0,
+          "end": 30
+        }
+      ],
+      "bufferLength": 8.465878,
+      "paused": false,
+      "readyState": 4,
+      "estimatedBandwidth": 2865072.5625119475,
+      "streamBandwidth": 1430413
+    },
+    {
+      "wall_ms": 23765,
+      "currentTime": 22.534991,
+      "buffered": [
+        {
+          "start": 0,
+          "end": 32.001
+        }
+      ],
+      "bufferLength": 9.466008999999996,
+      "paused": false,
+      "readyState": 4,
+      "estimatedBandwidth": 2868759.439272229,
+      "streamBandwidth": 1430413
+    },
+    {
+      "wall_ms": 24767,
+      "currentTime": 23.53691,
+      "buffered": [
+        {
+          "start": 0,
+          "end": 35
+        }
+      ],
+      "bufferLength": 11.463090000000001,
+      "paused": false,
+      "readyState": 4,
+      "estimatedBandwidth": 2844894.4839750514,
+      "streamBandwidth": 1430413
+    },
+    {
+      "wall_ms": 25770,
+      "currentTime": 24.539033,
+      "buffered": [
+        {
+          "start": 0,
+          "end": 35
+        }
+      ],
+      "bufferLength": 10.460967,
+      "paused": false,
+      "readyState": 4,
+      "estimatedBandwidth": 2844894.4839750514,
+      "streamBandwidth": 1430413
+    },
+    {
+      "wall_ms": 26770,
+      "currentTime": 25.539501,
+      "buffered": [
+        {
+          "start": 0,
+          "end": 35
+        }
+      ],
+      "bufferLength": 9.460498999999999,
+      "paused": false,
+      "readyState": 4,
+      "estimatedBandwidth": 3200000,
+      "streamBandwidth": 3028574
+    },
+    {
+      "wall_ms": 27771,
+      "currentTime": 26.540926,
+      "buffered": [
+        {
+          "start": 0,
+          "end": 35
+        }
+      ],
+      "bufferLength": 8.459074000000001,
+      "paused": false,
+      "readyState": 4,
+      "estimatedBandwidth": 2311803.273772395,
+      "streamBandwidth": 3028574
+    },
+    {
+      "wall_ms": 28772,
+      "currentTime": 27.541148,
+      "buffered": [
+        {
+          "start": 0,
+          "end": 35
+        }
+      ],
+      "bufferLength": 7.458852,
+      "paused": false,
+      "readyState": 4,
+      "estimatedBandwidth": 2749054.5299952044,
+      "streamBandwidth": 3028574
+    },
+    {
+      "wall_ms": 29773,
+      "currentTime": 28.542887,
+      "buffered": [
+        {
+          "start": 0,
+          "end": 40
+        }
+      ],
+      "bufferLength": 11.457113,
+      "paused": false,
+      "readyState": 4,
+      "estimatedBandwidth": 2880683.8542806944,
+      "streamBandwidth": 3028574
+    }
+  ],
+  "sampleIntervalMs": 1000,
   "shakaStatsSnapshot": {
-    "width": 854,
-    "height": 480,
-    "streamBandwidth": 1430413,
+    "width": 1280,
+    "height": 720,
+    "streamBandwidth": 3028574,
     "decodedFrames": 712,
     "droppedFrames": 0,
     "corruptedFrames": 0,
     "stallsDetected": 0,
     "gapsJumped": 0,
-    "estimatedBandwidth": 19582179.517295685,
+    "estimatedBandwidth": 2880683.8542806944,
     "completionPercent": 12,
-    "loadLatency": 0.09399986267089844,
-    "manifestTimeSeconds": 0.031999826431274414,
+    "loadLatency": 0.0989999771118164,
+    "manifestTimeSeconds": 0.029000043869018555,
     "drmTimeSeconds": null,
-    "playTime": 29.55900001525879,
+    "playTime": 29.555999994277954,
     "pauseTime": 0,
-    "bufferingTime": 0.4199998378753662,
+    "bufferingTime": 0.42600011825561523,
     "licenseTime": null,
     "liveLatency": null,
     "maxSegmentDuration": 5,
     "stateHistory": [
       {
-        "timestamp": 1768389910.456,
+        "timestamp": 1768986862.873,
         "state": "buffering",
-        "duration": 0.4199998378753662
+        "duration": 0.42600011825561523
       },
       {
-        "timestamp": 1768389910.876,
+        "timestamp": 1768986863.299,
         "state": "playing",
-        "duration": 29.55900001525879
+        "duration": 29.555999994277954
       }
     ],
     "switchHistory": [
       {
-        "timestamp": 1768389910.456,
+        "timestamp": 1768986862.873,
         "id": 1,
         "type": "variant",
         "fromAdaptation": true,
         "bandwidth": 1430413
       },
       {
-        "timestamp": 1768389910.872,
+        "timestamp": 1768986863.284,
+        "id": 2,
+        "type": "variant",
+        "fromAdaptation": true,
+        "bandwidth": 3028574
+      },
+      {
+        "timestamp": 1768986863.293,
         "id": 3,
         "type": "variant",
         "fromAdaptation": true,
         "bandwidth": 5709099
       },
       {
-        "timestamp": 1768389916.228,
+        "timestamp": 1768986864.292,
         "id": 1,
         "type": "variant",
         "fromAdaptation": true,
         "bandwidth": 1430413
       },
       {
-        "timestamp": 1768389920.293,
+        "timestamp": 1768986872.716,
         "id": 2,
         "type": "variant",
         "fromAdaptation": true,
         "bandwidth": 3028574
       },
       {
-        "timestamp": 1768389922.819,
+        "timestamp": 1768986883.219,
         "id": 1,
         "type": "variant",
         "fromAdaptation": true,
         "bandwidth": 1430413
       },
       {
-        "timestamp": 1768389924.676,
+        "timestamp": 1768986888.754,
         "id": 2,
         "type": "variant",
         "fromAdaptation": true,
         "bandwidth": 3028574
-      },
-      {
-        "timestamp": 1768389930.797,
-        "id": 1,
-        "type": "variant",
-        "fromAdaptation": true,
-        "bandwidth": 1430413
       }
     ]
   },
@@ -168,7 +616,7 @@
         "height": 480,
         "frameRate": 24.390243902439025,
         "codecs": "vp09.00.30.08.01.01.01.01.01, opus",
-        "active": true
+        "active": false
       },
       {
         "id": 2,
@@ -177,7 +625,7 @@
         "height": 720,
         "frameRate": 24.390243902439025,
         "codecs": "vp09.00.31.08.01.01.01.01.01, opus",
-        "active": false
+        "active": true
       },
       {
         "id": 3,
@@ -191,10 +639,10 @@
     ]
   },
   "derivedFromShaka": {
-    "startupBufferingS": 0.4199998378753662,
+    "startupBufferingS": 0.42600011825561523,
     "stallCount": 0,
     "stallTimeS": 0,
-    "totalBufferingS": 0.4199998378753662,
+    "totalBufferingS": 0.42600011825561523,
     "switchCount": 6
   }
 }
