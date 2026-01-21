@@ -36,5 +36,8 @@ docker compose down -v && docker compose up --build
 
 **Permission error:** `sudo chown -R $(whoami) ~/.docker`
 
+## Assignment 4
+For Assignment 4, we used the traces from [Real-world bandwith traces (Oboe)](https://github.com/confiwent/Real-world-bandwidth-traces/tree/master/traces_oboe)​
+
 ## Versioning
 For specific assignments see the corresponding branch.
