@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const puppeteer = require("puppeteer");
 
+const P1203_INPUT_DIR = "P1203_Inputs";
 const NAV_TIMEOUT_MS = 120000;
 const PLAYER_WAIT_MS = 15000;
 
@@ -18,7 +19,7 @@ function mustGetArg(name) {
 }
 
 function parseCsvTrace(csvText) {
-  const lines = csvText.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  const lines = csvText.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
   if (lines.length < 2) throw new Error("Trace CSV must have header + at least 1 row");
 
   const header = lines[0].split(",").map((s) => s.trim());
@@ -37,7 +38,7 @@ function parseCsvTrace(csvText) {
       const p = line.split(",").map((s) => s.trim());
       return {
         timestamp_s: Number(p[timeStamp]),
-        download_kbps: Number(p[download])
+        download_kbps: Number(p[download]),
       };
     })
     .sort((a, b) => a.timestamp_s - b.timestamp_s);
@@ -50,13 +51,102 @@ async function sleep(ms) {
 async function waitForShakaPlayer(page, timeoutMs) {
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
-    const hasPlayer = await page.evaluate(() =>
-      !!(window.player && typeof window.player.getStats === "function")
+    const hasPlayer = await page.evaluate(
+      () => !!(window.player && typeof window.player.getStats === "function")
     );
     if (hasPlayer) return true;
     await sleep(250);
   }
   return false;
+}
+
+function buildSegmentsFromSwitchHistory(shakaStats, shakaTrackInfo, durationS) {
+  const tracks = shakaTrackInfo?.tracks || [];
+  const byId = new Map(tracks.map((t) => [t.id, t]));
+
+  const hist = shakaStats?.switchHistory || [];
+  const variantSwitches = hist.filter((x) => x.type === "variant" && x.id != null);
+  if (variantSwitches.length === 0) return [];
+
+  const t0 = Number(variantSwitches[0].timestamp);
+  const rel = (ts) => Math.max(0, Number(ts) - t0);
+
+  const raw = variantSwitches
+    .map((s) => ({ t: rel(s.timestamp), id: s.id }))
+    .sort((a, b) => a.t - b.t);
+
+  const sw = [];
+  for (const x of raw) {
+    const last = sw[sw.length - 1];
+    if (last && last.id === x.id && Math.abs(last.t - x.t) < 0.05) continue;
+    sw.push(x);
+  }
+
+  const segments = [];
+  for (let i = 0; i < sw.length; i++) {
+    const cur = sw[i];
+    const nextT = i + 1 < sw.length ? sw[i + 1].t : durationS;
+
+    const start = Math.max(0, cur.t);
+    const end = Math.min(durationS, Math.max(start, nextT));
+    const dur = end - start;
+    if (dur < 0.05) continue;
+
+    const tr = byId.get(cur.id);
+    if (!tr) continue;
+
+    segments.push({
+      start,
+      duration: dur,
+      bitrate_kbps: (Number(tr.bandwidth) || 0) / 1000,
+      width: Number(tr.width) || 0,
+      height: Number(tr.height) || 0,
+      fps: Number(tr.frameRate) || 25,
+      vcodec: "h264", // Changed from vp9 to h264
+      acodec: "aaclc",
+      representation: tr.id,
+    });
+  }
+
+  return segments;
+}
+
+function buildP1203InputFromSegments(segments, startupBufferingS, displaySize = "1920x1080", device = "pc") {
+  const stalling = [];
+  if (startupBufferingS && startupBufferingS > 0.05) stalling.push([0, startupBufferingS]);
+
+  return {
+    IGen: {
+      device,
+      displaySize,
+      viewingDistance: 0,
+    },
+    I13: {
+      streamId: 42,
+      segments: segments.map((s) => ({
+        codec: s.vcodec,
+        start: s.start,
+        duration: s.duration,
+        resolution: `${s.width}x${s.height}`,
+        bitrate: s.bitrate_kbps,
+        fps: s.fps,
+        representation: s.representation,
+      })),
+    },
+    I11: {
+      streamId: 42,
+      segments: segments.map((s) => ({
+        codec: s.acodec,
+        start: s.start,
+        duration: s.duration,
+        bitrate: 128,
+      })),
+    },
+    I23: {
+      streamId: 42,
+      stalling,
+    },
+  };
 }
 
 (async () => {
@@ -66,9 +156,11 @@ async function waitForShakaPlayer(page, timeoutMs) {
   const duration = Number(getArg("duration", "60"));
 
   fs.mkdirSync(path.dirname(out), { recursive: true });
+  fs.mkdirSync(P1203_INPUT_DIR, { recursive: true });
 
   const traceText = fs.readFileSync(tracePath, "utf-8");
   const trace = parseCsvTrace(traceText);
+  if (!trace.length) throw new Error("Trace CSV has no rows");
 
   const browser = await puppeteer.launch({
     headless: "new",
@@ -116,7 +208,7 @@ async function waitForShakaPlayer(page, timeoutMs) {
   const sampleIntervalMs = Number(getArg("sample-interval", "1000"));
 
   const samplingTask = (async () => {
-    while ((Date.now() - startedAt) < duration * 1000) {
+    while (Date.now() - startedAt < duration * 1000) {
       const sample = await page.evaluate(() => {
         try {
           const video = document.querySelector("video");
@@ -164,14 +256,14 @@ async function waitForShakaPlayer(page, timeoutMs) {
 
       sample.wall_ms = Date.now() - startedAt;
       bufferSamples.push(sample);
-      
+
       await sleep(sampleIntervalMs);
     }
   })();
 
   const traceTask = (async () => {
     for (let i = 1; i < trace.length; i++) {
-      if ((Date.now() - startedAt) >= duration * 1000) break;
+      if (Date.now() - startedAt >= duration * 1000) break;
       const prev = trace[i - 1];
       const cur = trace[i];
       const waitMs = Math.max(0, (cur.timestamp_s - prev.timestamp_s) * 1000);
@@ -249,6 +341,16 @@ async function waitForShakaPlayer(page, timeoutMs) {
   await traceTask.catch(() => {});
   await samplingTask.catch(() => {});
 
+  const startupBufferingS = derivedFromShaka?.startupBufferingS || 0;
+  const segments = buildSegmentsFromSwitchHistory(shakaStats, shakaTrackInfo, duration);
+
+  const displaySize = `${shakaStats?.width || 1920}x${shakaStats?.height || 1080}`;
+  const p1203Input = buildP1203InputFromSegments(segments, startupBufferingS, displaySize, "pc");
+
+  const baseName = path.basename(out).replace(/\.json$/i, "");
+  const p1203InputPath = path.join(P1203_INPUT_DIR,`${baseName}_p1203_input.json`);
+  fs.writeFileSync(p1203InputPath, JSON.stringify(p1203Input, null, 2));
+
   const result = {
     url,
     tracePath,
@@ -262,10 +364,14 @@ async function waitForShakaPlayer(page, timeoutMs) {
     shakaStatsSnapshot: shakaStats,
     shakaTrackInfo,
     derivedFromShaka,
+
+    p1203InputPath,
+    p1203Input
   };
 
   fs.writeFileSync(out, JSON.stringify(result, null, 2));
   console.log("OK, wrote", out);
+  console.log("OK, wrote", p1203InputPath);
 
   await browser.close();
 })().catch((err) => {

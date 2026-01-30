@@ -14,10 +14,9 @@ RUN apt-get update && apt-get install -y \
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-RUN git clone https://github.com/itu-p1203/itu-p1203.git /tmp/itu-p1203 && \
-    cd /tmp/itu-p1203 && \
-    pip install . && \
-    rm -rf /tmp/itu-p1203
+RUN pip install numpy && \
+    pip install git+https://github.com/itu-p1203/itu-p1203.git && \
+    pip install git+https://github.com/Telecommunication-Telemedia-Assessment/itu-p1203-codecextension.git
 
 RUN ARCH=$(uname -m) && \
     if [ "$ARCH" = "x86_64" ]; then \

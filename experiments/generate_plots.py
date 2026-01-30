@@ -2,8 +2,15 @@ import sys
 import json
 import math
 import glob
+import os
+import subprocess
 from pathlib import Path
 import matplotlib.pyplot as plt
+from itu_p1203 import P1203Standalone
+
+RESULTS_DIR = "experiments/results"
+P1203_INPUT_DIR = "experiments/P1203_Inputs"
+P1203_OUTPUT_DIR = "experiments/P1203_Outputs"
 
 def clamp(x, lo, hi):
     return max(lo, min(hi, x))
@@ -304,18 +311,48 @@ def generate_plots(path):
     print(f"QoE MOS (proxy):   {mos:.2f} / 5.00")
 
 if __name__ == "__main__":
+    os.makedirs(P1203_OUTPUT_DIR, exist_ok=True)
     if len(sys.argv) < 2:
-        print("Usage: docker compose exec web python experiments/generate_plots.py experiments/results/video_<id>")
+        print("Usage: docker compose exec web python experiments/generate_plots.py video_<id>")
         sys.exit(1)
 
     prefix = sys.argv[1]
-    pattern = f"{prefix}*.json"
-    matching_files = sorted(glob.glob(pattern))
 
-    if not matching_files:
-        print(f"No JSON files found matching: {pattern}")
+    result_pattern = os.path.join(RESULTS_DIR, f"{prefix}*.json")
+    result_files = sorted(glob.glob(result_pattern))
+
+    if not result_files:
+        print(f"No JSON files found matching: {result_pattern}")
         sys.exit(1)
 
-    print(f"Found {len(matching_files)} result files")
-    for json_path in matching_files:
+    print(f"Found {len(result_files)} result files")
+
+    for json_path in result_files:
         generate_plots(json_path)
+
+    p1203_input_pattern = os.path.join(P1203_INPUT_DIR, f"{prefix}*.json")
+    input_files = sorted(glob.glob(p1203_input_pattern))
+
+    if not input_files:
+        print(f"No JSON files to start P1203 found matching: {result_pattern}")
+        sys.exit(1)
+    
+    print(f"Found {len(input_files)} P1203 input files")
+
+    for input_path in input_files:
+        proccess = subprocess.run(
+            ["uv", "run", "p1203-standalone", input_path],
+            capture_output=True,
+            text=True
+        )
+
+        if proccess.returncode != 0:
+            print(f"P1203 failed: {proccess.stderr}")
+            continue
+
+        results = json.loads(proccess.stdout)
+        base_name = Path(input_path).stem.replace("_p1203_input", "")
+        output_path = os.path.join(P1203_OUTPUT_DIR, f"{base_name}_p1203_output.json")
+
+        with open(output_path, "w", encoding="utf-8") as f:
+            json.dump(results, f, indent=2)
