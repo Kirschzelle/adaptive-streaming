@@ -209,3 +209,5 @@ __marimo__/
 # Custom
 staticfiles
 media
+experiments/node_modules
+experiments/results/plots

@@ -13,7 +13,21 @@ async function init() {
 
     try {
         await player.load(manifestUri);
-        console.log('The video has now been loaded!');
+
+        const params = new URLSearchParams(window.location.search);
+        const shouldAutoplay = params.get("autoplay") === "1";
+
+        if (shouldAutoplay) {
+            video.muted = true;
+            video.playsInline = true;
+
+            try {
+                await video.play();
+                console.log("Autoplay started via ?autoplay=1");
+            } catch (e) {
+                console.log("Autoplay blocked:", e);
+            }
+        }
     } catch (error) {
         onPlayerError(error);
     }

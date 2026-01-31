@@ -1,8 +1,6 @@
 FROM python:3.11-slim
-
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
-
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
@@ -11,7 +9,14 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     ffmpeg \
     wget \
+    git \
     && rm -rf /var/lib/apt/lists/*
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+RUN pip install numpy && \
+    pip install git+https://github.com/itu-p1203/itu-p1203.git && \
+    pip install git+https://github.com/Telecommunication-Telemedia-Assessment/itu-p1203-codecextension.git
 
 RUN ARCH=$(uname -m) && \
     if [ "$ARCH" = "x86_64" ]; then \
@@ -25,9 +30,6 @@ RUN ARCH=$(uname -m) && \
 
 COPY requirements.txt /app/
 RUN pip install --upgrade pip && pip install -r requirements.txt
-
 COPY . /app/
-
 RUN mkdir -p /app/staticfiles
-
 EXPOSE 8000
