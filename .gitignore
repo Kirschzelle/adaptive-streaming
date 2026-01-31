@@ -211,3 +211,6 @@ staticfiles
 media
 experiments/node_modules
 experiments/results/plots
+experiments/P1203_Inputs/
+experiments/P1203_Outputs/
+experiments/results/

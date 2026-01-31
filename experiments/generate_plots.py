@@ -6,6 +6,7 @@ import os
 import subprocess
 from pathlib import Path
 import matplotlib.pyplot as plt
+from p1203Pv_extended.p1203Pv_extended import P1203Pv_codec_extended
 from itu_p1203 import P1203Standalone
 
 RESULTS_DIR = "experiments/results"
@@ -318,7 +319,7 @@ if __name__ == "__main__":
 
     prefix = sys.argv[1]
 
-    result_pattern = os.path.join(RESULTS_DIR, f"{prefix}*.json")
+    result_pattern = os.path.join(RESULTS_DIR, f"video_{prefix}*.json")
     result_files = sorted(glob.glob(result_pattern))
 
     if not result_files:
@@ -330,29 +331,34 @@ if __name__ == "__main__":
     for json_path in result_files:
         generate_plots(json_path)
 
-    p1203_input_pattern = os.path.join(P1203_INPUT_DIR, f"{prefix}*.json")
+    p1203_input_pattern = os.path.join(P1203_INPUT_DIR, f"video_{prefix}*.json")
     input_files = sorted(glob.glob(p1203_input_pattern))
 
     if not input_files:
-        print(f"No JSON files to start P1203 found matching: {result_pattern}")
+        print(f"No JSON files to start P1203 found matching: {p1203_input_pattern}")
         sys.exit(1)
     
     print(f"Found {len(input_files)} P1203 input files")
 
+    P1203Pv_codec_extended._show_warning = False
+
     for input_path in input_files:
-        proccess = subprocess.run(
-            ["uv", "run", "p1203-standalone", input_path],
-            capture_output=True,
-            text=True
-        )
-
-        if proccess.returncode != 0:
-            print(f"P1203 failed: {proccess.stderr}")
+        try:
+            with open(input_path, 'r') as f:
+                input_data = json.load(f)
+            
+            p1203 = P1203Standalone(input_data, Pv=P1203Pv_codec_extended)
+            results = p1203.calculate_complete()
+            
+            base_name = Path(input_path).stem.replace("_p1203_input", "")
+            output_path = os.path.join(P1203_OUTPUT_DIR, f"{base_name}_p1203_output.json")
+            with open(output_path, "w", encoding="utf-8") as f:
+                json.dump(results, f, indent=2)
+                
+            print(f"[OK] P1203 output written to: {output_path}")
+                    
+        except Exception as e:
+            print(f"P1203 failed for {input_path}: {e}")
+            import traceback
+            traceback.print_exc()
             continue
-
-        results = json.loads(proccess.stdout)
-        base_name = Path(input_path).stem.replace("_p1203_input", "")
-        output_path = os.path.join(P1203_OUTPUT_DIR, f"{base_name}_p1203_output.json")
-
-        with open(output_path, "w", encoding="utf-8") as f:
-            json.dump(results, f, indent=2)

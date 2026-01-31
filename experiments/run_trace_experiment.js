@@ -102,7 +102,7 @@ function buildSegmentsFromSwitchHistory(shakaStats, shakaTrackInfo, durationS) {
       width: Number(tr.width) || 0,
       height: Number(tr.height) || 0,
       fps: Number(tr.frameRate) || 25,
-      vcodec: "h264", // Changed from vp9 to h264
+      vcodec: "vp9",
       acodec: "aaclc",
       representation: tr.id,
     });
