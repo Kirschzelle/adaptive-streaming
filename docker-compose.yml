@@ -46,7 +46,7 @@ services:
 
   celery:
     build: .
-    command: celery -A adaptive_streaming worker --loglevel=info --queues=celery --concurrency=4
+    command: celery -A adaptive_streaming worker --loglevel=warning --queues=celery --concurrency=4
     volumes:
       - .:/app
     env_file:
@@ -59,7 +59,7 @@ services:
 
   celery_encoding:
     build: .
-    command: celery -A adaptive_streaming worker --loglevel=info --queues=video_encoding --concurrency=1
+    command: celery -A adaptive_streaming worker --loglevel=warning --queues=video_encoding --concurrency=1
     volumes:
       - .:/app
     env_file:
@@ -72,7 +72,7 @@ services:
 
   celery-beat:
     build: .
-    command: celery -A adaptive_streaming beat --loglevel=info
+    command: celery -A adaptive_streaming beat --loglevel=warning
     volumes:
       - .:/app
     env_file:
