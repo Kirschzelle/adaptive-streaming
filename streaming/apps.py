@@ -5,25 +5,22 @@ class StreamingConfig(AppConfig):
     name = 'streaming'
     
     def ready(self):
-        import streaming.signals
+        import os
+        run_requeue = os.environ.get('RUN_REQUEUE', '').lower() != 'false'
+        
+        if run_requeue:
+            requeue_interrupted_encodes()
 
-        #requeue_interrupted_encodes()
-
-#def requeue_interrupted_encodes():
-#    from django.db.utils import OperationalError, ProgrammingError
-#    from .models import CurrentEncode
-#    from .tasks import encode_video_resolution
-
-#    try:
-#        interrupted = CurrentEncode.objects.all()
-
-#        for encode in interrupted:
-#            if encode.video_variant:
-#                encode_video_resolution.delay(
-#                    encode.video_variant.video.id,
-#                    encode.video_variant.resolution
-#                )
-#            encode.delete()
-#    except (OperationalError, ProgrammingError):
-        # Tables don't exist yet (e.g., before migrations run)
-#        pass
+def requeue_interrupted_encodes():
+    from .models import Video
+    from .tasks import encode_video
+    videos_to_encode = Video.objects.filter(
+        video__isnull=False,
+        processing=False,
+        dash_ready=False
+    ).exclude(video='')
+    
+    count = 0
+    for video in videos_to_encode:
+        encode_video.apply_async(args=[video.id], queue="video_encoding")
+        count += 1

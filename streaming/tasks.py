@@ -88,7 +88,7 @@ def encode_video(video_id):
             {'name': '1080p', 'width': 1920, 'height': 1080, 'bitrate': '4000k', 'maxrate': '6000k'},
         ]
 
-        qualities = [q for q in all_qualities if q['height'] <= source_height]
+        qualities = [quality for quality in all_qualities if quality['height'] <= source_height and quality['width'] <= source_width]
         
         if not qualities:
             qualities = [{
@@ -101,7 +101,7 @@ def encode_video(video_id):
         
         video_files = []
         
-        for _, quality in enumerate(qualities):
+        for quality in qualities:
             video_output = os.path.join(output_dir, f'video_{quality["name"]}.webm')
             
             video_cmd = [

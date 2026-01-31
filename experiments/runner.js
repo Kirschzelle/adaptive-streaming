@@ -1,8 +1,8 @@
-const redis = require("redis");
-const { spawn } = require("child_process");
+import { createClient } from "redis";
+import { spawn } from "child_process";
 
 const REDIS_URL = process.env.REDIS_URL || "redis://redis:6379/0";
-const client = redis.createClient({ url: REDIS_URL });
+const client = createClient({ url: REDIS_URL });
 
 async function main() {
   await client.connect();

@@ -48,12 +48,10 @@ class Video(models.Model):
     
     @property
     def is_streamable(self):
-        """Check if video is ready for adaptive streaming"""
         return self.dash_ready and bool(self.dash_manifest)
     
     @property
     def manifest_url(self):
-        """Get the URL for the DASH manifest"""
         if self.dash_manifest:
             return self.dash_manifest.url
         return None

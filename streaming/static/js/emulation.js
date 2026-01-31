@@ -20,15 +20,13 @@ document.addEventListener("DOMContentLoaded", () => {
         body: JSON.stringify({
           video_id: Number(videoId),
           traces: traceFiles,
-          duration: 30, //change this to durationToRun, for now just 30sec
+          duration: durationToRun,
         }),
       });
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
-
-      const data = await response.json();
     } catch (err) {
       console.error("Failed to start emulation:", err);
     }

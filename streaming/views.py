@@ -103,7 +103,7 @@ def upload_view(request):
 def detailed_view(request, id):
     video = get_object_or_404(Video, id=id)
     traces_dir = Path(settings.BASE_DIR) / "experiments" / "traces"
-    trace_files = sorted([p.name for p in traces_dir.glob("*.csv")])
+    trace_files = sorted([p.name for p in traces_dir.glob("*.csv")]) # Note: This would have to be removed for production or made an optional debug return.
 
     context = {
         "video": video,

@@ -1,10 +1,15 @@
-const fs = require("fs");
-const path = require("path");
-const puppeteer = require("puppeteer");
+import { mkdirSync, readFileSync, writeFileSync } from "fs";
+import { dirname, basename, join } from "path";
+import { launch } from "puppeteer";
 
 const P1203_INPUT_DIR = "P1203_Inputs";
 const NAV_TIMEOUT_MS = 120000;
 const PLAYER_WAIT_MS = 15000;
+const SLEEP_DURATION = 250;
+const THRESHOLD_CONSECUTIVE_SWITCHES = 0.05;
+const BITS_TO_KBITS = 1 / 1000;
+const KBITS_TO_BITS = 1000;
+const S_TO_MS = 1000;
 
 function getArg(name, def = null) {
   const idx = process.argv.indexOf(`--${name}`);
@@ -13,9 +18,9 @@ function getArg(name, def = null) {
 }
 
 function mustGetArg(name) {
-  const v = getArg(name, null);
-  if (!v) throw new Error(`Missing required --${name} argument`);
-  return v;
+  const video = getArg(name, null);
+  if (!video) throw new Error(`Missing required --${name} argument`);
+  return video;
 }
 
 function parseCsvTrace(csvText) {
@@ -35,10 +40,10 @@ function parseCsvTrace(csvText) {
   return lines
     .slice(1)
     .map((line) => {
-      const p = line.split(",").map((s) => s.trim());
+      const play = line.split(",").map((s) => s.trim());
       return {
-        timestamp_s: Number(p[timeStamp]),
-        download_kbps: Number(p[download]),
+        timestamp_s: Number(play[timeStamp]),
+        download_kbps: Number(play[download]),
       };
     })
     .sort((a, b) => a.timestamp_s - b.timestamp_s);
@@ -55,71 +60,87 @@ async function waitForShakaPlayer(page, timeoutMs) {
       () => !!(window.player && typeof window.player.getStats === "function")
     );
     if (hasPlayer) return true;
-    await sleep(250);
+    await sleep(SLEEP_DURATION);
   }
   return false;
 }
 
-function buildSegmentsFromSwitchHistory(shakaStats, shakaTrackInfo, durationS) {
+function buildSegmentsFromSwitchHistory(shakaStats, shakaTrackInfo, durationSeconds) {
   const tracks = shakaTrackInfo?.tracks || [];
   const byId = new Map(tracks.map((t) => [t.id, t]));
 
-  const hist = shakaStats?.switchHistory || [];
-  const variantSwitches = hist.filter((x) => x.type === "variant" && x.id != null);
+  const history = shakaStats?.switchHistory || [];
+  const variantSwitches = history.filter((x) => x.type === "variant" && x.id != null);
   if (variantSwitches.length === 0) return [];
 
-  const t0 = Number(variantSwitches[0].timestamp);
-  const rel = (ts) => Math.max(0, Number(ts) - t0);
+  const timestamp0 = Number(variantSwitches[0].timestamp);
+  const relativeToStart = (timestamp) => Math.max(0, Number(timestamp) - timestamp0);
 
-  const raw = variantSwitches
-    .map((s) => ({ t: rel(s.timestamp), id: s.id }))
-    .sort((a, b) => a.t - b.t);
+  const rawSwitches = variantSwitches
+      .map((switchEvent) => ({ 
+          timestamp: relativeToStart(switchEvent.timestamp), 
+          variantId: switchEvent.id 
+      }))
+      .sort((a, b) => a.timestamp - b.timestamp);
 
-  const sw = [];
-  for (const x of raw) {
-    const last = sw[sw.length - 1];
-    if (last && last.id === x.id && Math.abs(last.t - x.t) < 0.05) continue;
-    sw.push(x);
+  const filteredSwitches = [];
+  for (const currentSwitch of rawSwitches) {
+      const previousSwitch = filteredSwitches[filteredSwitches.length - 1];
+      if (previousSwitch && 
+          previousSwitch.variantId === currentSwitch.variantId && 
+          Math.abs(previousSwitch.timestamp - currentSwitch.timestamp) < THRESHOLD_CONSECUTIVE_SWITCHES) {
+          continue;
+      }
+      filteredSwitches.push(currentSwitch);
   }
 
   const segments = [];
-  for (let i = 0; i < sw.length; i++) {
-    const cur = sw[i];
-    const nextT = i + 1 < sw.length ? sw[i + 1].t : durationS;
+  for (let i = 0; i < filteredSwitches.length; i++) {
+    const currentSwitch = filteredSwitches[i];
+    const nextTimestamp = i + 1 < filteredSwitches.length ? filteredSwitches[i + 1].t : durationSeconds;
 
-    const start = Math.max(0, cur.t);
-    const end = Math.min(durationS, Math.max(start, nextT));
-    const dur = end - start;
-    if (dur < 0.05) continue;
+    const start = Math.max(0, currentSwitch.t);
+    const end = Math.min(durationSeconds, Math.max(start, nextTimestamp));
+    const duration = end - start;
+    if (duration < 0.05) continue;
 
-    const tr = byId.get(cur.id);
-    if (!tr) continue;
+    const track = byId.get(currentSwitch.id);
+    if (!track) continue;
 
     segments.push({
       start,
-      duration: dur,
-      bitrate_kbps: (Number(tr.bandwidth) || 0) / 1000,
-      width: Number(tr.width) || 0,
-      height: Number(tr.height) || 0,
-      fps: Number(tr.frameRate) || 25,
+      duration: duration,
+      bitrate_kbps: (Number(track.bandwidth) || 0) * BITS_TO_KBITS,
+      width: Number(track.width) || 0,
+      height: Number(track.height) || 0,
+      fps: Number(track.frameRate) || 25,
       vcodec: "vp9",
       acodec: "aaclc",
-      representation: tr.id,
+      representation: track.id,
     });
   }
 
   return segments;
 }
 
-function buildP1203InputFromSegments(segments, startupBufferingS, displaySize = "1920x1080", device = "pc") {
+function buildP1203InputFromSegments(segments, startupBufferingSeconds, displaySize = "1920x1080", device = "pc") {
   const stalling = [];
-  if (startupBufferingS && startupBufferingS > 0.05) stalling.push([0, startupBufferingS]);
+  if (startupBufferingSeconds && startupBufferingSeconds > THRESHOLD_CONSECUTIVE_SWITCHES) stalling.push([0, startupBufferingSeconds]);
 
   return {
     IGen: {
       device,
       displaySize,
-      viewingDistance: 0,
+      viewingDistance: "150cm",
+    },
+    I11: {
+      streamId: 42,
+      segments: segments.map((s) => ({
+        codec: s.acodec,
+        start: s.start,
+        duration: s.duration,
+        bitrate: 128, // Note: We do currently not support varying audio streams, so we just use a default bitrate here.
+      })),
     },
     I13: {
       streamId: 42,
@@ -131,15 +152,6 @@ function buildP1203InputFromSegments(segments, startupBufferingS, displaySize = 
         bitrate: s.bitrate_kbps,
         fps: s.fps,
         representation: s.representation,
-      })),
-    },
-    I11: {
-      streamId: 42,
-      segments: segments.map((s) => ({
-        codec: s.acodec,
-        start: s.start,
-        duration: s.duration,
-        bitrate: 128,
       })),
     },
     I23: {
@@ -155,14 +167,14 @@ function buildP1203InputFromSegments(segments, startupBufferingS, displaySize = 
   const out = mustGetArg("out");
   const duration = Number(getArg("duration", "60"));
 
-  fs.mkdirSync(path.dirname(out), { recursive: true });
-  fs.mkdirSync(P1203_INPUT_DIR, { recursive: true });
+  mkdirSync(dirname(out), { recursive: true });
+  mkdirSync(P1203_INPUT_DIR, { recursive: true });
 
-  const traceText = fs.readFileSync(tracePath, "utf-8");
+  const traceText = readFileSync(tracePath, "utf-8");
   const trace = parseCsvTrace(traceText);
   if (!trace.length) throw new Error("Trace CSV has no rows");
 
-  const browser = await puppeteer.launch({
+  const browser = await launch({
     headless: "new",
     args: [
       "--no-sandbox",
@@ -183,7 +195,7 @@ function buildP1203InputFromSegments(segments, startupBufferingS, displaySize = 
 
   await cdp.send("Network.emulateNetworkConditions", {
     offline: false,
-    downloadThroughput: (first.download_kbps * 1000) / 8,
+    downloadThroughput: (first.download_kbps * KBITS_TO_BITS) / 8,
     uploadThroughput: 0,
     latency: 0,
   });
@@ -195,12 +207,12 @@ function buildP1203InputFromSegments(segments, startupBufferingS, displaySize = 
   await page.waitForSelector("video", { timeout: NAV_TIMEOUT_MS });
 
   await page.evaluate(() => {
-    const v = document.querySelector("video");
-    if (v) {
-      v.muted = true;
-      v.autoplay = true;
-      const p = v.play();
-      if (p && typeof p.catch === "function") p.catch(() => {});
+    const video = document.querySelector("video");
+    if (video) {
+      video.muted = true;
+      video.autoplay = true;
+      const play = video.play();
+      if (play && typeof play.catch === "function") play.catch(() => {});
     }
   });
 
@@ -208,7 +220,7 @@ function buildP1203InputFromSegments(segments, startupBufferingS, displaySize = 
   const sampleIntervalMs = Number(getArg("sample-interval", "1000"));
 
   const samplingTask = (async () => {
-    while (Date.now() - startedAt < duration * 1000) {
+    while (Date.now() - startedAt < duration * KBITS_TO_BITS) {
       const sample = await page.evaluate(() => {
         try {
           const video = document.querySelector("video");
@@ -262,26 +274,26 @@ function buildP1203InputFromSegments(segments, startupBufferingS, displaySize = 
   })();
 
   const traceTask = (async () => {
-    for (let i = 1; i < trace.length; i++) {
-      if (Date.now() - startedAt >= duration * 1000) break;
-      const prev = trace[i - 1];
-      const cur = trace[i];
-      const waitMs = Math.max(0, (cur.timestamp_s - prev.timestamp_s) * 1000);
+    for (let trace_index = 1; trace_index < trace.length; trace_index++) {
+      if (Date.now() - startedAt >= duration * KBITS_TO_BITS) break;
+      const previous = trace[trace_index - 1];
+      const current = trace[trace_index];
+      const waitMs = Math.max(0, (current.timestamp_s - previous.timestamp_s) * KBITS_TO_BITS);
       await sleep(waitMs);
 
       await cdp.send("Network.emulateNetworkConditions", {
         offline: false,
-        downloadThroughput: (cur.download_kbps * 1000) / 8,
+        downloadThroughput: (current.download_kbps * KBITS_TO_BITS) / 8,
         uploadThroughput: 0,
         latency: 0,
       });
 
-      applied.push({ wall_ms: Date.now() - startedAt, ...cur });
-      console.log(`Applied t=${cur.timestamp_s}s download=${cur.download_kbps}`);
+      applied.push({ wall_ms: Date.now() - startedAt, ...current });
+      console.log(`Applied t=${current.timestamp_s}s download=${current.download_kbps}`);
     }
   })();
 
-  await sleep(duration * 1000);
+  await sleep(duration * S_TO_MS);
   await waitForShakaPlayer(page, PLAYER_WAIT_MS);
 
   const shakaStats = await page.evaluate(() => {
@@ -299,14 +311,14 @@ function buildP1203InputFromSegments(segments, startupBufferingS, displaySize = 
 
       const tracks =
         typeof window.player.getVariantTracks === "function"
-          ? window.player.getVariantTracks().map((t) => ({
-              id: t.id,
-              bandwidth: t.bandwidth,
-              width: t.width,
-              height: t.height,
-              frameRate: t.frameRate || null,
-              codecs: t.codecs || null,
-              active: t.active || false,
+          ? window.player.getVariantTracks().map((track) => ({
+              id: track.id,
+              bandwidth: track.bandwidth,
+              width: track.width,
+              height: track.height,
+              frameRate: track.frameRate || null,
+              codecs: track.codecs || null,
+              active: track.active || false,
             }))
           : null;
 
@@ -319,21 +331,21 @@ function buildP1203InputFromSegments(segments, startupBufferingS, displaySize = 
   let derivedFromShaka = null;
   if (shakaStats && Array.isArray(shakaStats.stateHistory)) {
     const buffering = shakaStats.stateHistory.filter((x) => x.state === "buffering");
-    const totalBufferingS = buffering.reduce((acc, x) => acc + (x.duration || 0), 0);
+    const totalBufferingSeconds = buffering.reduce((acc, x) => acc + (x.duration || 0), 0);
 
-    const startupBufferingS = buffering.length > 0 ? buffering[0].duration : null;
+    const startupBufferingSeconds = buffering.length > 0 ? buffering[0].duration : null;
     const stallCount = Math.max(0, buffering.length - 1);
-    const stallTimeS = buffering.slice(1).reduce((acc, x) => acc + (x.duration || 0), 0);
+    const stallTimeSeconds = buffering.slice(1).reduce((acc, x) => acc + (x.duration || 0), 0);
 
     const switchCount = Array.isArray(shakaStats.switchHistory)
       ? Math.max(0, shakaStats.switchHistory.length - 1)
       : null;
 
     derivedFromShaka = {
-      startupBufferingS,
+      startupBufferingSeconds,
       stallCount,
-      stallTimeS,
-      totalBufferingS,
+      stallTimeSeconds,
+      totalBufferingSeconds,
       switchCount,
     };
   }
@@ -341,15 +353,15 @@ function buildP1203InputFromSegments(segments, startupBufferingS, displaySize = 
   await traceTask.catch(() => {});
   await samplingTask.catch(() => {});
 
-  const startupBufferingS = derivedFromShaka?.startupBufferingS || 0;
+  const startupBufferingSeconds = derivedFromShaka?.startupBufferingSeconds || 0;
   const segments = buildSegmentsFromSwitchHistory(shakaStats, shakaTrackInfo, duration);
 
   const displaySize = `${shakaStats?.width || 1920}x${shakaStats?.height || 1080}`;
-  const p1203Input = buildP1203InputFromSegments(segments, startupBufferingS, displaySize, "pc");
+  const p1203Input = buildP1203InputFromSegments(segments, startupBufferingSeconds, displaySize, "pc");
 
-  const baseName = path.basename(out).replace(/\.json$/i, "");
-  const p1203InputPath = path.join(P1203_INPUT_DIR,`${baseName}_p1203_input.json`);
-  fs.writeFileSync(p1203InputPath, JSON.stringify(p1203Input, null, 2));
+  const baseName = basename(out).replace(/\.json$/i, "");
+  const p1203InputPath = join(P1203_INPUT_DIR,`${baseName}_p1203_input.json`);
+  writeFileSync(p1203InputPath, JSON.stringify(p1203Input, null, 2));
 
   const result = {
     url,
@@ -369,7 +381,7 @@ function buildP1203InputFromSegments(segments, startupBufferingS, displaySize = 
     p1203Input
   };
 
-  fs.writeFileSync(out, JSON.stringify(result, null, 2));
+  writeFileSync(out, JSON.stringify(result, null, 2));
   console.log("OK, wrote", out);
   console.log("OK, wrote", p1203InputPath);
 

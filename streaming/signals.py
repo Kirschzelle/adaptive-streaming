@@ -7,6 +7,9 @@ import os
 
 @receiver(post_delete, sender=Video)
 def delete_video_files(sender, instance, **kwargs):
+    _ = sender
+    _ = kwargs
+
     if instance.video:
         instance.video.delete(save=False)
     

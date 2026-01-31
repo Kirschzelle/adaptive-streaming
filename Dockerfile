@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
     ffmpeg \
     wget \
     git \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip install numpy && \
@@ -29,5 +30,3 @@ RUN ARCH=$(uname -m) && \
 COPY requirements.txt /app/
 RUN pip install --upgrade pip && pip install -r requirements.txt
 COPY . /app/
-RUN mkdir -p /app/staticfiles
-EXPOSE 8000

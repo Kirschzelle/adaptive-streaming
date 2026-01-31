@@ -18,7 +18,6 @@ async function init() {
         const shouldAutoplay = params.get("autoplay") === "1";
 
         if (shouldAutoplay) {
-            video.muted = true;
             video.playsInline = true;
 
             try {
@@ -46,6 +45,7 @@ function onUIErrorEvent(errorEvent) {
 }
 
 function initFailed(errorEvent) {
+    _ = errorEvent
     console.error('Unable to load the UI library!');
 }
 

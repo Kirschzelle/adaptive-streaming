@@ -43,6 +43,12 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 15s
 
   celery:
     build: .
@@ -91,8 +97,10 @@ services:
       - ./experiments:/client
       - runner_node_modules:/client/node_modules
     depends_on:
-      - web
-      - redis
+      redis:
+        condition: service_healthy
+      web:
+        condition: service_healthy
     command: >
       bash -lc "npm ci && node runner.js"
 
