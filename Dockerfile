@@ -12,8 +12,6 @@ RUN apt-get update && apt-get install -y \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
-
 RUN pip install numpy && \
     pip install git+https://github.com/itu-p1203/itu-p1203.git && \
     pip install git+https://github.com/Telecommunication-Telemedia-Assessment/itu-p1203-codecextension.git
