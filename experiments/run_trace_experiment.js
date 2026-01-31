@@ -97,14 +97,14 @@ function buildSegmentsFromSwitchHistory(shakaStats, shakaTrackInfo, durationSeco
   const segments = [];
   for (let i = 0; i < filteredSwitches.length; i++) {
     const currentSwitch = filteredSwitches[i];
-    const nextTimestamp = i + 1 < filteredSwitches.length ? filteredSwitches[i + 1].t : durationSeconds;
+    const nextTimestamp = i + 1 < filteredSwitches.length ? filteredSwitches[i + 1].timestamp : durationSeconds;
 
-    const start = Math.max(0, currentSwitch.t);
+    const start = Math.max(0, currentSwitch.timestamp);
     const end = Math.min(durationSeconds, Math.max(start, nextTimestamp));
     const duration = end - start;
     if (duration < 0.05) continue;
 
-    const track = byId.get(currentSwitch.id);
+    const track = byId.get(currentSwitch.variantId);
     if (!track) continue;
 
     segments.push({
@@ -220,7 +220,7 @@ function buildP1203InputFromSegments(segments, startupBufferingSeconds, displayS
   const sampleIntervalMs = Number(getArg("sample-interval", "1000"));
 
   const samplingTask = (async () => {
-    while (Date.now() - startedAt < duration * KBITS_TO_BITS) {
+    while (Date.now() - startedAt < duration * S_TO_MS) {
       const sample = await page.evaluate(() => {
         try {
           const video = document.querySelector("video");
