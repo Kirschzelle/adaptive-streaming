@@ -3,7 +3,6 @@ import json
 import math
 import glob
 import os
-import subprocess
 from pathlib import Path
 import matplotlib.pyplot as plt
 from p1203Pv_extended.p1203Pv_extended import P1203Pv_codec_extended
@@ -314,7 +313,7 @@ def generate_plots(path):
 if __name__ == "__main__":
     os.makedirs(P1203_OUTPUT_DIR, exist_ok=True)
     if len(sys.argv) < 2:
-        print("Usage: docker compose exec web python experiments/generate_plots.py video_<id>")
+        print("Usage: docker compose exec web python experiments/generate_plots.py <video_id>")
         sys.exit(1)
 
     prefix = sys.argv[1]
